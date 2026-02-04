@@ -150,9 +150,15 @@ function vitePluginManusDebugCollector(): Plugin {
   };
 }
 
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()];
+// Only include Manus-specific plugins in development (not for GitHub Pages build)
+const isGitHubActions = process.env.GITHUB_ACTIONS === 'true';
+const plugins = isGitHubActions
+  ? [react(), tailwindcss()]
+  : [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()];
 
 export default defineConfig({
+  // GitHub Pages deployment base path
+  base: process.env.GITHUB_ACTIONS ? '/medai-prompt-builder/' : '/',
   plugins,
   resolve: {
     alias: {
@@ -164,7 +170,7 @@ export default defineConfig({
   envDir: path.resolve(import.meta.dirname),
   root: path.resolve(import.meta.dirname, "client"),
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    outDir: path.resolve(import.meta.dirname, "dist"),
     emptyOutDir: true,
   },
   server: {
