@@ -73,6 +73,16 @@ export function trackSettingsAttempt() {
 }
 
 /**
+ * プロンプト実行ボタンクリックイベント
+ */
+export function trackExecutePrompt(presetId: string, hasCustomKeywords: boolean) {
+  trackEvent('execute_prompt_generation', {
+    preset_id: presetId,
+    has_custom_keywords: hasCustomKeywords,
+  });
+}
+
+/**
  * GA4の初期化（index.htmlで読み込むスクリプト用）
  */
 export function initGA4() {

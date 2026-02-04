@@ -369,8 +369,24 @@ PROOF_SECTION_END`;
 export function generatePrompt(config: AppConfig, extSettings?: ExtendedSettings): string {
   // Load extended settings if not provided
   const settings = extSettings || loadExtendedSettings();
-  
-  let prompt = buildBaseTemplate(settings);
+
+  // Phase 5: 難易度に応じた設定の調整
+  const adjustedSettings: ExtendedSettings = {
+    ...settings,
+    output: {
+      ...settings.output,
+      detailLevel: config.difficultyLevel === 'professional' ? 'detailed' : 'standard',
+      eGovCrossReference: config.difficultyLevel === 'professional' && config.eGovCrossReference,
+      includeLawExcerpts: config.difficultyLevel === 'professional',
+    },
+    search: {
+      ...settings.search,
+      recursiveDepth: config.difficultyLevel === 'professional' ? 2 : 0,
+      maxResults: config.difficultyLevel === 'professional' ? 20 : 10,
+    },
+  };
+
+  let prompt = buildBaseTemplate(adjustedSettings);
   
   // Replace date
   prompt = prompt.replace(/\[\[DATE_TODAY\]\]/g, config.dateToday);

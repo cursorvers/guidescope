@@ -16,13 +16,16 @@ export interface TabPreset {
   keywordChips: string[];
 }
 
+export type DifficultyLevel = 'standard' | 'professional';
+
 export interface AppConfig {
   // Basic settings
   dateToday: string;
   query: string;
   scope: string[];
   audiences: string[];
-  
+  difficultyLevel: DifficultyLevel;
+
   // Switches
   threeMinistryGuidelines: boolean;
   officialDomainPriority: boolean;
@@ -191,7 +194,8 @@ export function createDefaultConfig(tabId: string = 'medical-device'): AppConfig
     query: '',
     scope: ['医療AI'],
     audiences: ['医療機関', '開発企業'],
-    
+    difficultyLevel: 'standard',
+
     threeMinistryGuidelines: true,
     officialDomainPriority: true,
     siteOperator: true,

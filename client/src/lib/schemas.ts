@@ -37,12 +37,15 @@ const KeywordChipItemSchema = z.object({
   enabled: z.boolean(),
 });
 
+export const DifficultyLevelSchema = z.enum(['standard', 'professional']);
+
 export const AppConfigSchema = z.object({
   // Basic settings
   dateToday: z.string(),
   query: z.string(),
   scope: z.array(z.string()),
   audiences: z.array(z.string()),
+  difficultyLevel: DifficultyLevelSchema.default('standard'),
 
   // Switches
   threeMinistryGuidelines: z.boolean(),
