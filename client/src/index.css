@@ -122,15 +122,15 @@
 
 /* Font Size Variables */
 :root {
-  --font-size-base: 14px;
+  --font-size-base: 16px;
 }
 
 .font-size-small {
-  --font-size-base: 13px;
+  --font-size-base: 14px;
 }
 
 .font-size-large {
-  --font-size-base: 16px;
+  --font-size-base: 18px;
 }
 
 @layer base {
@@ -145,8 +145,21 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 500;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+  }
+
+  button, [role="button"] {
+    font-weight: 600;
+  }
+
+  label {
+    font-weight: 500;
   }
   
   button:not(:disabled),
