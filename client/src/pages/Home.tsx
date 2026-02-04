@@ -88,6 +88,34 @@ function ComingSoonOverlay({
   );
 }
 
+type ExecuteButtonBarProps = {
+  onExecute: () => void;
+  disabled: boolean;
+};
+
+function ExecuteButtonBar({ onExecute, disabled }: ExecuteButtonBarProps) {
+  return (
+    <>
+      <Button
+        size="lg"
+        className="w-full text-base font-semibold"
+        onClick={onExecute}
+        disabled={disabled}
+      >
+        <Sparkles className="w-5 h-5 mr-2" />
+        プロンプトを生成
+      </Button>
+
+      {disabled && (
+        <p className="text-xs text-destructive mt-2 flex items-center gap-1">
+          <AlertCircle className="w-3 h-3" />
+          探索テーマを入力してください
+        </p>
+      )}
+    </>
+  );
+}
+
 export default function Home() {
   const {
     config,
@@ -117,6 +145,7 @@ export default function Home() {
   const [hasExecutedBefore, setHasExecutedBefore] = useState(() => {
     return localStorage.getItem('medai_has_executed') === 'true';
   });
+  const isExecuteDisabled = !config.query.trim();
 
   // 初回実行フラグをlocalStorageに保存
   useEffect(() => {
@@ -334,7 +363,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="container py-4">
+      <main className="container py-4 pb-24 lg:pb-4">
         {/* 使い方ガイド */}
         {showUsageGuide && (
           <div className="mb-4 p-4 bg-primary/5 border border-primary/20 rounded-lg relative">
@@ -732,23 +761,8 @@ export default function Home() {
             </ComingSoonOverlay>
 
             {/* 9. 実行ボタン（Phase 4） */}
-            <div className="simple-card p-4 bg-gradient-to-br from-primary/10 to-primary/5">
-              <Button
-                size="lg"
-                className="w-full text-base font-semibold"
-                onClick={handleExecute}
-                disabled={!config.query.trim()}
-              >
-                <Sparkles className="w-5 h-5 mr-2" />
-                プロンプトを生成
-              </Button>
-
-              {!config.query.trim() && (
-                <p className="text-xs text-destructive mt-2 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  探索テーマを入力してください
-                </p>
-              )}
+            <div className="simple-card p-4 bg-gradient-to-br from-primary/10 to-primary/5 hidden lg:block">
+              <ExecuteButtonBar onExecute={handleExecute} disabled={isExecuteDisabled} />
             </div>
           </div>
 
@@ -889,8 +903,14 @@ export default function Home() {
         </div>
       </main>
 
+      <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-background/95 backdrop-blur border-t border-border pb-safe">
+        <div className="container py-3">
+          <ExecuteButtonBar onExecute={handleExecute} disabled={isExecuteDisabled} />
+        </div>
+      </div>
+
       {/* Footer */}
-      <footer className="border-t border-border mt-8 py-4">
+      <footer className="border-t border-border mt-8 py-4 mb-24 lg:mb-0">
         <div className="container text-center text-xs text-muted-foreground">
           本アプリは情報整理支援ツールです。個別ケースは専門家にご相談ください。
         </div>
