@@ -3,7 +3,7 @@
  * X反応確認用ミニマル版対応
  */
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -159,7 +159,7 @@ export default function Home() {
     }
 
     return Math.round((completed / total) * 100);
-  }, [config, isMinimalMode]);
+  }, [config.query, config.activeTab, config.audiences, config.scope, config.categories, config.keywordChips, isMinimalMode]);
 
   // プリセット選択（トラッキング付き）
   const handlePresetSelect = (presetId: string) => {
@@ -171,7 +171,7 @@ export default function Home() {
   };
 
   // コピー（トラッキング付き）
-  const handleCopy = async () => {
+  const handleCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(generatedPrompt);
       trackPromptCopy(config.activeTab);
@@ -179,10 +179,10 @@ export default function Home() {
     } catch {
       toast.error('コピーに失敗しました');
     }
-  };
+  }, [generatedPrompt, config.activeTab]);
 
   // ダウンロード（トラッキング付き）
-  const handleDownload = () => {
+  const handleDownload = useCallback(() => {
     const blob = new Blob([generatedPrompt], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -192,10 +192,10 @@ export default function Home() {
     URL.revokeObjectURL(url);
     trackPromptDownload(config.activeTab);
     toast.success('ダウンロードしました');
-  };
+  }, [generatedPrompt, config.activeTab, config.dateToday]);
 
   // 実行ボタン（Phase 4）
-  const handleExecute = () => {
+  const handleExecute = useCallback(() => {
     if (!config.query.trim()) {
       toast.error('探索テーマを入力してください');
       return;
@@ -220,7 +220,7 @@ export default function Home() {
       setShowIntroModal(true);
       setHasExecutedBefore(true);
     }
-  };
+  }, [config.query, config.activeTab, config.customKeywords, hasExecutedBefore]);
 
   // JSON エクスポート
   const handleExportJSON = () => {
@@ -269,7 +269,7 @@ export default function Home() {
   };
 
   // 共有リンク
-  const handleShare = async () => {
+  const handleShare = useCallback(async () => {
     if (isMinimalMode) {
       trackComingSoonClick('共有リンク');
       toast.info('共有リンクは近日公開予定です');
@@ -282,7 +282,7 @@ export default function Home() {
     } catch {
       toast.error('コピーに失敗しました');
     }
-  };
+  }, [config, isMinimalMode]);
 
   // 設定ページへのリンククリック
   const handleSettingsClick = (e: React.MouseEvent) => {
