@@ -1,7 +1,6 @@
 /**
- * Medical AI Prompt Builder - Mobile Header Component
- * Design: Medical Precision 2.0 - Heavy yet Light
- * 
+ * GuideScope - Mobile Header Component
+ *
  * Features:
  * - Compact mobile-optimized header
  * - Collapsible disclaimer
@@ -11,9 +10,10 @@
 
 import { useState } from 'react';
 import { useLocation } from 'wouter';
-import { AlertTriangle, Info, Settings, Shield } from 'lucide-react';
-import { DISCLAIMER_LINES, TEMPLATE_BASE_DATE } from '@/lib/presets';
+import { Info, Settings, Shield } from 'lucide-react';
+import { TEMPLATE_BASE_DATE } from '@/lib/presets';
 import { cn } from '@/lib/utils';
+import { DisclaimerBar } from './DisclaimerBar';
 
 export function MobileHeader() {
   const [, setLocation] = useLocation();
@@ -40,7 +40,7 @@ export function MobileHeader() {
               </span>
             </div>
           </div>
-          
+
           {/* Settings Button */}
           <button
             onClick={() => setLocation('/settings')}
@@ -48,14 +48,14 @@ export function MobileHeader() {
           >
             <Settings className="w-4 h-4" />
           </button>
-          
+
           {/* Info Button */}
           <button
             onClick={() => setShowDisclaimer(!showDisclaimer)}
             className={cn(
               'flex items-center justify-center w-8 h-8 rounded-full transition-colors',
-              showDisclaimer 
-                ? 'bg-amber-100 text-amber-700' 
+              showDisclaimer
+                ? 'bg-amber-100 text-amber-700'
                 : 'bg-secondary text-muted-foreground hover:text-foreground'
             )}
           >
@@ -63,7 +63,7 @@ export function MobileHeader() {
           </button>
         </div>
       </div>
-      
+
       {/* Collapsible Disclaimer */}
       <div
         className={cn(
@@ -72,16 +72,7 @@ export function MobileHeader() {
         )}
       >
         <div className="px-4 pb-3 bg-amber-50 border-t border-amber-200">
-          <div className="flex items-start gap-2 pt-2">
-            <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-            <div className="text-xs text-amber-800 space-y-1">
-              {DISCLAIMER_LINES.map((line, index) => (
-                <p key={index} className="leading-relaxed">
-                  {line}
-                </p>
-              ))}
-            </div>
-          </div>
+          <DisclaimerBar variant="mobile" />
         </div>
       </div>
     </header>
