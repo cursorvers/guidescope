@@ -883,7 +883,11 @@ export default function Home() {
                       </div>
                       <div className="bg-muted/50 p-3 rounded-lg font-mono mt-2">
                         <p className="text-muted-foreground mb-1"># 使用例</p>
-                        <pre className="text-xs whitespace-pre-wrap">{`import { generate } from 'guidescope';
+                        <pre className="text-xs whitespace-pre-wrap">{`// ESM
+import { generate } from 'guidescope/packages/core';
+
+// CommonJS
+const { generate } = require('guidescope/packages/core');
 
 const result = generate({
   query: '医療AIの臨床導入',
