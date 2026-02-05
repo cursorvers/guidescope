@@ -871,19 +871,19 @@ export default function Home() {
                 </CollapsibleTrigger>
                 <CollapsibleContent className="collapsible-content">
                   <div className="space-y-4 text-xs">
-                    {/* npm パッケージ */}
+                    {/* GitHub からインストール */}
                     <div>
                       <h4 className="font-semibold text-sm flex items-center gap-1 mb-2">
                         <Terminal className="w-3 h-3" />
-                        npm パッケージ
+                        npm パッケージ（GitHub）
                       </h4>
                       <div className="bg-muted/50 p-3 rounded-lg font-mono space-y-2">
                         <p className="text-muted-foreground"># インストール</p>
-                        <code className="block">npm install @cursorvers/guidescope</code>
+                        <code className="block text-xs break-all">npm install github:cursorvers/guidescope#main</code>
                       </div>
                       <div className="bg-muted/50 p-3 rounded-lg font-mono mt-2">
                         <p className="text-muted-foreground mb-1"># 使用例</p>
-                        <pre className="text-xs whitespace-pre-wrap">{`import { generate } from '@cursorvers/guidescope';
+                        <pre className="text-xs whitespace-pre-wrap">{`import { generate } from 'guidescope';
 
 const result = generate({
   query: '医療AIの臨床導入',
@@ -908,8 +908,8 @@ console.log(result.prompt);`}</pre>
                         <pre className="text-xs whitespace-pre-wrap">{`{
   "mcpServers": {
     "guidescope": {
-      "command": "npx",
-      "args": ["@cursorvers/guidescope-mcp"]
+      "command": "node",
+      "args": ["node_modules/guidescope/packages/mcp/dist/index.js"]
     }
   }
 }`}</pre>
