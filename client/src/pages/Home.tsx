@@ -34,7 +34,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-import { TAB_PRESETS, type AppConfig } from '@/lib/presets';
+import { TAB_PRESETS, DIFFICULTY_PRESETS, type AppConfig, type DifficultyLevel } from '@/lib/presets';
 import { generatePrompt, generateSearchQueries, configToJSON, parseConfigJSON, encodeConfigToURL } from '@/lib/template';
 import { useConfig } from '@/hooks/useConfig';
 import { useMinimalMode } from '@/contexts/MinimalModeContext';
@@ -522,63 +522,82 @@ export default function Home() {
             <div className="simple-card p-3">
               <div className="flex items-center gap-2 mb-2">
                 <Label className="text-sm font-medium">難易度</Label>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button className="text-muted-foreground hover:text-foreground">
-                      <HelpCircle className="w-3.5 h-3.5" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="right" className="max-w-xs">
-                    <p className="text-xs">
-                      プロンプトの詳細度を調整します。スタンダードは基本的な情報収集、プロフェッショナルは法令参照を含む詳細分析に適しています。
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-
                 <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
                   基本設定
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground mb-2">
-                プロンプトの詳細度と技術的な深さを選択します
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => updateField('difficultyLevel', 'standard')}
-                  className={cn(
-                    'p-3 rounded-lg border-2 transition-all text-left',
-                    config.difficultyLevel === 'standard'
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/30'
-                  )}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <Star className="w-4 h-4" />
-                    <span className="font-semibold text-sm">スタンダード</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    基本的な情報収集に最適
-                  </p>
-                </button>
 
-                <button
-                  onClick={() => updateField('difficultyLevel', 'professional')}
-                  className={cn(
-                    'p-3 rounded-lg border-2 transition-all text-left',
-                    config.difficultyLevel === 'professional'
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/30'
-                  )}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <Zap className="w-4 h-4" />
-                    <span className="font-semibold text-sm">プロフェッショナル</span>
+              {/* 使い分けガイド（折りたたみ） */}
+              <Collapsible className="mb-3">
+                <CollapsibleTrigger className="flex items-center gap-1 text-xs text-primary hover:underline">
+                  <HelpCircle className="w-3 h-3" />
+                  <span>どちらを選ぶべき？</span>
+                  <ChevronDown className="w-3 h-3" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="mt-2 p-3 bg-primary/5 border border-primary/20 rounded-lg text-xs space-y-3">
+                    <div>
+                      <p className="font-medium text-foreground flex items-center gap-1 mb-1">
+                        <Star className="w-3 h-3" />
+                        スタンダードを選ぶケース
+                      </p>
+                      <ul className="text-muted-foreground space-y-0.5 list-disc list-inside ml-1">
+                        <li>関連するガイドラインの全体像を把握したい</li>
+                        <li>どのような指針があるか調査段階</li>
+                        <li>LLMの処理時間を短くしたい</li>
+                        <li>初めてこのツールを使う</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground flex items-center gap-1 mb-1">
+                        <Zap className="w-3 h-3" />
+                        プロフェッショナルを選ぶケース
+                      </p>
+                      <ul className="text-muted-foreground space-y-0.5 list-disc list-inside ml-1">
+                        <li>具体的な条文・根拠を特定したい</li>
+                        <li>法令との関係を整理したい</li>
+                        <li>申請書類・報告書の作成準備</li>
+                        <li>監査・コンプライアンス対応</li>
+                      </ul>
+                    </div>
+                    <p className="text-muted-foreground pt-2 border-t border-primary/20">
+                      <strong>ヒント:</strong> まずスタンダードで全体像を把握し、詳細が必要な分野をプロフェッショナルで深掘りするのがおすすめです。
+                    </p>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    詳細な分析と法令参照
-                  </p>
-                </button>
+                </CollapsibleContent>
+              </Collapsible>
+
+              <div className="grid grid-cols-2 gap-2">
+                {DIFFICULTY_PRESETS.map((preset) => (
+                  <button
+                    key={preset.id}
+                    onClick={() => updateField('difficultyLevel', preset.id as DifficultyLevel)}
+                    className={cn(
+                      'p-3 rounded-lg border-2 transition-all text-left',
+                      config.difficultyLevel === preset.id
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:border-primary/30'
+                    )}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      {preset.icon === 'star' ? <Star className="w-4 h-4" /> : <Zap className="w-4 h-4" />}
+                      <span className="font-semibold text-sm">{preset.name}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      {preset.description}
+                    </p>
+                    {config.difficultyLevel === preset.id && (
+                      <ul className="text-xs text-muted-foreground space-y-0.5 mt-2 pt-2 border-t border-border">
+                        {preset.features.map((feature, i) => (
+                          <li key={i} className="flex items-start gap-1">
+                            <Check className="w-3 h-3 text-primary mt-0.5 shrink-0" />
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </button>
+                ))}
               </div>
             </div>
 

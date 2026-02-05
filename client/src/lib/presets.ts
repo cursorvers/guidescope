@@ -18,6 +18,73 @@ export interface TabPreset {
 
 export type DifficultyLevel = 'standard' | 'professional';
 
+// ============================================================================
+// Difficulty Presets
+// ============================================================================
+
+export interface DifficultyPreset {
+  id: DifficultyLevel;
+  name: string;
+  description: string;
+  icon: 'star' | 'zap';
+  features: string[];
+  settings: {
+    detailLevel: 'concise' | 'standard' | 'detailed';
+    eGovCrossReference: boolean;
+    includeLawExcerpts: boolean;
+    recursiveDepth: number;
+    maxResults: number;
+    proofMode: boolean;
+  };
+}
+
+export const DIFFICULTY_PRESETS: DifficultyPreset[] = [
+  {
+    id: 'standard',
+    name: 'スタンダード',
+    description: '基本的な情報収集に最適',
+    icon: 'star',
+    features: [
+      'ガイドライン一覧の取得',
+      '最新版の確認',
+      '基本的な検索（10件まで）',
+    ],
+    settings: {
+      detailLevel: 'standard',
+      eGovCrossReference: false,
+      includeLawExcerpts: false,
+      recursiveDepth: 0,
+      maxResults: 10,
+      proofMode: false,
+    },
+  },
+  {
+    id: 'professional',
+    name: 'プロフェッショナル',
+    description: '詳細な分析と法令参照',
+    icon: 'zap',
+    features: [
+      'e-Gov法令クロスリファレンス',
+      '関連文書の再帰的取得（2階層）',
+      '詳細な条文抜粋',
+      '拡張検索（20件まで）',
+      '実証モード',
+    ],
+    settings: {
+      detailLevel: 'detailed',
+      eGovCrossReference: true,
+      includeLawExcerpts: true,
+      recursiveDepth: 2,
+      maxResults: 20,
+      proofMode: true,
+    },
+  },
+];
+
+export function getDifficultyPreset(level: DifficultyLevel): DifficultyPreset {
+  return DIFFICULTY_PRESETS.find(p => p.id === level) || DIFFICULTY_PRESETS[0];
+}
+
 export interface AppConfig {
   // Basic settings
   dateToday: string;
