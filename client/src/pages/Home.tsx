@@ -63,7 +63,8 @@ const MOBILE_MEDIA_QUERY = '(max-width: 1023px)';
 const TEXT_INPUT_TYPES = new Set(['text', 'search', 'email', 'number', 'tel', 'url', 'password']);
 
 /**
- * Coming Soon オーバーレイコンポーネント
+ * Full Version オーバーレイコンポーネント
+ * プレビュー版では機能をマスクし、通常版で利用可能であることを示す
  */
 function ComingSoonOverlay({
   featureName,
@@ -80,23 +81,23 @@ function ComingSoonOverlay({
 
   const handleClick = () => {
     trackComingSoonClick(featureName);
-    toast.info(`「${featureName}」は近日公開予定です`, {
-      description: 'ご興味ありがとうございます！',
+    toast.info(`「${featureName}」は通常版でご利用いただけます`, {
+      description: 'プレビュー版では基本機能のみお試しいただけます',
     });
   };
 
   return (
     <div className="relative">
-      <div className="opacity-40 pointer-events-none select-none">
+      <div className="opacity-50 pointer-events-none select-none">
         {children}
       </div>
       <button
         onClick={handleClick}
-        className="absolute inset-0 flex items-center justify-center bg-muted/60 backdrop-blur-[1px] rounded-lg cursor-pointer hover:bg-muted/70 transition-colors"
+        className="absolute inset-0 flex flex-col items-center justify-center bg-muted/40 backdrop-blur-[0.5px] rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
       >
-        <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-background/80 px-3 py-1.5 rounded-full shadow-sm">
-          <Lock className="w-3 h-3" />
-          Coming Soon
+        <span className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground bg-background/90 px-2 py-1 rounded-full shadow-sm border border-border/50">
+          <Lock className="w-2.5 h-2.5" />
+          Unlock with Pro
         </span>
       </button>
     </div>
@@ -435,16 +436,16 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border">
-        <div className="container flex items-center justify-between h-16">
-          <div className="flex items-center gap-4">
+        <div className="container flex items-center justify-between h-20">
+          <div className="flex items-center gap-5">
             {/* Product Name - Primary */}
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-sm">
-                <Sparkles className="w-5 h-5 text-primary-foreground" />
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-md">
+                <Sparkles className="w-7 h-7 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-xl font-bold tracking-tight text-foreground">GuideScope</h1>
-                <p className="text-[10px] text-muted-foreground leading-tight">生成AI 国内ガイドライン検索</p>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">GuideScope</h1>
+                <p className="text-xs text-muted-foreground leading-tight">生成AI 国内ガイドライン検索</p>
               </div>
             </div>
 
@@ -453,14 +454,14 @@ export default function Home() {
               href="https://cursorvers.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden sm:flex items-center gap-1.5 pl-4 border-l border-border/50 hover:opacity-80 transition-opacity"
+              className="hidden sm:flex items-center gap-2 pl-5 border-l border-border/50 hover:opacity-80 transition-opacity"
             >
-              <img
-                src="/cursorvers-logo.svg"
-                alt="Cursorvers"
-                className="w-5 h-5 object-contain"
-              />
-              <span className="text-[10px] text-muted-foreground font-medium">Cursorvers Inc.</span>
+              <svg className="w-5 h-5" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="50" cy="50" rx="40" ry="20" stroke="currentColor" strokeWidth="4" fill="none" transform="rotate(-30 50 50)" className="text-primary"/>
+                <path d="M45 30 L45 70 L55 60 L65 65 L45 30" fill="currentColor" className="text-primary"/>
+                <circle cx="38" cy="32" r="4" fill="currentColor" className="text-primary"/>
+              </svg>
+              <span className="text-xs text-muted-foreground font-medium">Cursorvers Inc.</span>
             </a>
           </div>
           <div className="flex items-center gap-2">
@@ -562,28 +563,26 @@ export default function Home() {
         )}
 
         {/* メインコンテンツ */}
-        <div className="grid gap-4 lg:grid-cols-[400px_1fr]">
+        <div className="grid gap-4 lg:grid-cols-[340px_1fr]">
           {/* 左カラム: 設定 */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             {/* Phase 6: 設定完了度インジケーター */}
-            <div className="simple-card p-3 bg-primary/5 border-primary/20">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">設定完了度</span>
-                <span className="text-sm font-bold text-primary">{completionPercentage}%</span>
+            <div className="simple-card p-2 bg-primary/5 border-primary/20">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-medium">設定完了度</span>
+                <span className="text-xs font-bold text-primary">{completionPercentage}%</span>
               </div>
-
-              <Progress value={completionPercentage} className="h-2 mb-2" />
-
-              <div className="flex flex-wrap gap-2 text-xs">
+              <Progress value={completionPercentage} className="h-1.5 mb-1" />
+              <div className="flex flex-wrap gap-1.5 text-[10px]">
                 {config.query && (
-                  <span className="flex items-center gap-1 text-green-600">
-                    <Check className="w-3 h-3" />
+                  <span className="flex items-center gap-0.5 text-green-600">
+                    <Check className="w-2.5 h-2.5" />
                     テーマ入力済み
                   </span>
                 )}
                 {config.activeTab && (
-                  <span className="flex items-center gap-1 text-green-600">
-                    <Check className="w-3 h-3" />
+                  <span className="flex items-center gap-0.5 text-green-600">
+                    <Check className="w-2.5 h-2.5" />
                     プリセット選択済み
                   </span>
                 )}
@@ -591,16 +590,15 @@ export default function Home() {
             </div>
 
             {/* 1. 探索テーマ - 常に有効 */}
-            <div className="simple-card p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <Label htmlFor="query" className="text-sm font-medium">
+            <div className="simple-card p-2">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Label htmlFor="query" className="text-xs font-medium">
                   探索テーマ
                 </Label>
-
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button className="text-muted-foreground hover:text-foreground">
-                      <HelpCircle className="w-3.5 h-3.5" />
+                      <HelpCircle className="w-3 h-3" />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="right" className="max-w-xs">
@@ -609,8 +607,7 @@ export default function Home() {
                     </p>
                   </TooltipContent>
                 </Tooltip>
-
-                <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">
+                <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-700">
                   必須
                 </span>
               </div>
@@ -619,6 +616,7 @@ export default function Home() {
                 value={config.query}
                 onChange={(e) => updateField('query', e.target.value)}
                 placeholder="例: 医療AIの臨床導入における安全管理"
+                className={cn("h-7 text-xs", !config.query && "border-amber-300/50")}
               />
 
               {/* プライバシー警告 */}
@@ -636,16 +634,16 @@ export default function Home() {
             </div>
 
             {/* 1.5. 難易度選択（Phase 5） */}
-            <div className="simple-card p-3">
-              <div className="flex items-center gap-2 mb-2">
-                <Label className="text-sm font-medium">難易度</Label>
-                <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+            <div className="simple-card p-2">
+              <div className="flex items-center gap-2 mb-1.5">
+                <Label className="text-xs font-medium">難易度</Label>
+                <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700">
                   基本設定
                 </span>
               </div>
 
               {/* 使い分けガイド（折りたたみ） */}
-              <Collapsible className="mb-3">
+              <Collapsible className="mb-2">
                 <CollapsibleTrigger className="flex items-center gap-1 text-xs text-primary hover:underline">
                   <HelpCircle className="w-3 h-3" />
                   <span>どちらを選ぶべき？</span>
@@ -690,71 +688,67 @@ export default function Home() {
                     key={preset.id}
                     onClick={() => updateField('difficultyLevel', preset.id as DifficultyLevel)}
                     className={cn(
-                      'p-3 rounded-lg border-2 transition-all text-left',
+                      'p-2 rounded-lg border-2 transition-all text-left',
                       config.difficultyLevel === preset.id
                         ? 'border-primary bg-primary/5'
                         : 'border-border hover:border-primary/30'
                     )}
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      {preset.icon === 'star' ? <Star className="w-4 h-4" /> : <Zap className="w-4 h-4" />}
-                      <span className="font-semibold text-sm">{preset.name}</span>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      {preset.icon === 'star' ? <Star className="w-3.5 h-3.5" /> : <Zap className="w-3.5 h-3.5" />}
+                      <span className="font-semibold text-xs">{preset.name}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground mb-2">
+                    <p className="text-[10px] text-muted-foreground">
                       {preset.description}
                     </p>
-                    {config.difficultyLevel === preset.id && (
-                      <ul className="text-xs text-muted-foreground space-y-0.5 mt-2 pt-2 border-t border-border">
-                        {preset.features.map((feature, i) => (
-                          <li key={i} className="flex items-start gap-1">
-                            <Check className="w-3 h-3 text-primary mt-0.5 shrink-0" />
-                            <span>{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                    <ul className="text-[10px] text-muted-foreground space-y-0.5 mt-1.5 pt-1.5 border-t border-border">
+                      {preset.features.map((feature, i) => (
+                        <li key={i} className="flex items-start gap-1">
+                          <Check className={cn("w-2.5 h-2.5 mt-0.5 shrink-0", config.difficultyLevel === preset.id ? "text-primary" : "text-muted-foreground/50")} />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </button>
                 ))}
               </div>
             </div>
 
             {/* 2. 目的プリセット - 常に有効 */}
-            <div className="simple-card p-3 border-2 border-primary/30 bg-primary/5">
-              <div className="flex items-center gap-2 mb-2">
-                <Settings className="w-4 h-4 text-primary" />
-                <Label className="text-sm font-semibold">目的プリセット</Label>
-
+            <div className="simple-card p-2 border-2 border-primary/30 bg-primary/5">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <Settings className="w-3.5 h-3.5 text-primary" />
+                <Label className="text-xs font-semibold">目的プリセット</Label>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button className="text-muted-foreground hover:text-foreground">
-                      <HelpCircle className="w-3.5 h-3.5" />
+                      <HelpCircle className="w-3 h-3" />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="right" className="max-w-xs">
                     <p className="text-xs">
-                      探索の目的に応じて、カテゴリと検索語を自動設定します。プリセット変更により下記の設定が更新されます。
+                      探索の目的に応じて、カテゴリと検索語を自動設定します。
                     </p>
                   </TooltipContent>
                 </Tooltip>
-
-                <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
                   他の設定に影響
                 </span>
               </div>
 
-              <p className="text-xs text-muted-foreground mb-3">
+              <p className="text-[10px] text-muted-foreground mb-2">
                 プリセットを選択すると、カテゴリ例と追加検索語が自動的に設定されます
               </p>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {allPresets.map(preset => (
                   <button
                     key={preset.id}
                     onClick={() => handlePresetSelect(preset.id)}
                     className={cn(
-                      'px-4 py-2.5 text-sm font-medium rounded-lg border-2 transition-all',
+                      'px-3 py-1.5 text-xs font-medium rounded-lg border-2 transition-all',
                       config.activeTab === preset.id
-                        ? 'bg-primary text-primary-foreground border-primary shadow-lg'
+                        ? 'bg-primary text-primary-foreground border-primary shadow-md'
                         : 'bg-background border-border hover:border-primary/50 hover:bg-primary/5'
                     )}
                   >
@@ -764,102 +758,96 @@ export default function Home() {
               </div>
 
               {config.activeTab && (
-                <div className="mt-3 pt-3 border-t border-border text-xs text-muted-foreground space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Check className="w-3 h-3 text-primary" />
+                <div className="mt-2 pt-2 border-t border-border text-[10px] text-muted-foreground space-y-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <Check className="w-2.5 h-2.5 text-primary" />
                     <span>カテゴリ: {currentPreset.categories.length}件が設定されます</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-3 h-3 text-primary" />
+                  <div className="flex items-center gap-1.5">
+                    <Check className="w-2.5 h-2.5 text-primary" />
                     <span>検索語: {currentPreset.keywordChips.length}件が設定されます</span>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* 3. 対象者 - グレーアウト対象 */}
-            <ComingSoonOverlay featureName="対象者">
-              <Collapsible
-                open={sectionsOpen.audience}
-                onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, audience: open })}
-              >
-                <div className="simple-card">
-                  <CollapsibleTrigger className="collapsible-header">
-                    <span className="text-sm font-medium">対象者</span>
-                    {sectionsOpen.audience ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="collapsible-content">
-                    <div className="flex flex-wrap gap-1.5">
-                      {['医療機関', '提供事業者', '開発企業', '研究者', '審査対応'].map(audience => (
-                        <button
-                          key={audience}
-                          onClick={() => toggleAudience(audience)}
-                          className={`chip ${config.audiences.includes(audience) ? 'active' : ''}`}
-                        >
-                          {audience}
-                        </button>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </div>
-              </Collapsible>
-            </ComingSoonOverlay>
+            {/* 3. 対象者 */}
+            <Collapsible
+              open={sectionsOpen.audience}
+              onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, audience: open })}
+            >
+              <div className="simple-card">
+                <CollapsibleTrigger className="collapsible-header">
+                  <span className="text-sm font-medium">対象者</span>
+                  {sectionsOpen.audience ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                </CollapsibleTrigger>
+                <CollapsibleContent className="collapsible-content">
+                  <div className="flex flex-wrap gap-1.5">
+                    {['医療機関', '提供事業者', '開発企業', '研究者', '審査対応'].map(audience => (
+                      <button
+                        key={audience}
+                        onClick={() => toggleAudience(audience)}
+                        className={`chip ${config.audiences.includes(audience) ? 'active' : ''}`}
+                      >
+                        {audience}
+                      </button>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
 
-            {/* 4. 対象範囲 - グレーアウト対象 */}
-            <ComingSoonOverlay featureName="対象範囲">
-              <Collapsible
-                open={sectionsOpen.scope}
-                onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, scope: open })}
-              >
-                <div className="simple-card">
-                  <CollapsibleTrigger className="collapsible-header">
-                    <span className="text-sm font-medium">対象範囲</span>
-                    {sectionsOpen.scope ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="collapsible-content">
-                    <div className="flex flex-wrap gap-1.5">
-                      {['医療AI', '生成AI', 'SaMD', '医療情報セキュリティ', '医療データ利活用', '研究倫理'].map(scope => (
-                        <button
-                          key={scope}
-                          onClick={() => toggleScope(scope)}
-                          className={`chip ${config.scope.includes(scope) ? 'active' : ''}`}
-                        >
-                          {scope}
-                        </button>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </div>
-              </Collapsible>
-            </ComingSoonOverlay>
+            {/* 4. 対象範囲 */}
+            <Collapsible
+              open={sectionsOpen.scope}
+              onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, scope: open })}
+            >
+              <div className="simple-card">
+                <CollapsibleTrigger className="collapsible-header">
+                  <span className="text-sm font-medium">対象範囲</span>
+                  {sectionsOpen.scope ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                </CollapsibleTrigger>
+                <CollapsibleContent className="collapsible-content">
+                  <div className="flex flex-wrap gap-1.5">
+                    {['医療AI', '生成AI', 'SaMD', '医療情報セキュリティ', '医療データ利活用', '研究倫理'].map(scope => (
+                      <button
+                        key={scope}
+                        onClick={() => toggleScope(scope)}
+                        className={`chip ${config.scope.includes(scope) ? 'active' : ''}`}
+                      >
+                        {scope}
+                      </button>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
 
-            {/* 5. カテゴリ - グレーアウト対象 */}
-            <ComingSoonOverlay featureName="カテゴリ">
-              <Collapsible
-                open={sectionsOpen.categories}
-                onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, categories: open })}
-              >
-                <div className="simple-card">
-                  <CollapsibleTrigger className="collapsible-header">
-                    <span className="text-sm font-medium">カテゴリ例</span>
-                    {sectionsOpen.categories ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="collapsible-content">
-                    <div className="flex flex-wrap gap-1.5">
-                      {currentPreset.categories.map(cat => (
-                        <button
-                          key={cat}
-                          onClick={() => toggleCategory(cat)}
-                          className={`chip ${config.categories.find(c => c.name === cat)?.enabled ? 'active' : ''}`}
-                        >
-                          {cat}
-                        </button>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </div>
-              </Collapsible>
-            </ComingSoonOverlay>
+            {/* 5. カテゴリ */}
+            <Collapsible
+              open={sectionsOpen.categories}
+              onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, categories: open })}
+            >
+              <div className="simple-card">
+                <CollapsibleTrigger className="collapsible-header">
+                  <span className="text-sm font-medium">カテゴリ例</span>
+                  {sectionsOpen.categories ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                </CollapsibleTrigger>
+                <CollapsibleContent className="collapsible-content">
+                  <div className="flex flex-wrap gap-1.5">
+                    {currentPreset.categories.map(cat => (
+                      <button
+                        key={cat}
+                        onClick={() => toggleCategory(cat)}
+                        className={`chip ${config.categories.find(c => c.name === cat)?.enabled ? 'active' : ''}`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
 
             {/* 6. 追加検索語 - グレーアウト対象 */}
             <ComingSoonOverlay featureName="追加検索語">
@@ -895,32 +883,30 @@ export default function Home() {
               </Collapsible>
             </ComingSoonOverlay>
 
-            {/* 7. 優先ドメイン - グレーアウト対象 */}
-            <ComingSoonOverlay featureName="優先ドメイン">
-              <Collapsible
-                open={sectionsOpen.domains}
-                onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, domains: open })}
-              >
-                <div className="simple-card">
-                  <CollapsibleTrigger className="collapsible-header">
-                    <span className="text-sm font-medium">優先ドメイン</span>
-                    {sectionsOpen.domains ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="collapsible-content">
-                    <div className="flex flex-wrap gap-1.5">
-                      {config.priorityDomains.map(domain => (
-                        <span key={domain} className="chip active text-xs">
-                          {domain}
-                        </span>
-                      ))}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      ※ 設定画面で編集できます
-                    </p>
-                  </CollapsibleContent>
-                </div>
-              </Collapsible>
-            </ComingSoonOverlay>
+            {/* 7. 優先ドメイン */}
+            <Collapsible
+              open={sectionsOpen.domains}
+              onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, domains: open })}
+            >
+              <div className="simple-card">
+                <CollapsibleTrigger className="collapsible-header">
+                  <span className="text-sm font-medium">優先ドメイン</span>
+                  {sectionsOpen.domains ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                </CollapsibleTrigger>
+                <CollapsibleContent className="collapsible-content">
+                  <div className="flex flex-wrap gap-1.5">
+                    {config.priorityDomains.map(domain => (
+                      <span key={domain} className="chip active text-xs">
+                        {domain}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    ※ 設定画面で編集できます
+                  </p>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
 
             {/* 8. オプション - グレーアウト対象 */}
             <ComingSoonOverlay featureName="オプション">
@@ -965,12 +951,13 @@ export default function Home() {
               </Collapsible>
             </ComingSoonOverlay>
 
-            {/* 9. API / プログラムから使う */}
-            <Collapsible
-              open={sectionsOpen.api}
-              onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, api: open })}
-            >
-              <div className="simple-card">
+            {/* 9. API / プログラムから使う - グレーアウト対象 */}
+            <ComingSoonOverlay featureName="API / プログラムから使う">
+              <Collapsible
+                open={sectionsOpen.api}
+                onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, api: open })}
+              >
+                <div className="simple-card">
                 <CollapsibleTrigger className="collapsible-header">
                   <div className="flex items-center gap-2">
                     <Code className="w-4 h-4 text-primary" />
@@ -1021,8 +1008,8 @@ console.log(result.prompt);`}</pre>
                         <pre className="text-xs whitespace-pre-wrap">{`{
   "mcpServers": {
     "guidescope": {
-      "command": "node",
-      "args": ["node_modules/guidescope/packages/mcp/dist/index.js"]
+      "command": "npx",
+      "args": ["@cursorversinc/guidescope-mcp"]
     }
   }
 }`}</pre>
@@ -1048,6 +1035,7 @@ console.log(result.prompt);`}</pre>
                 </CollapsibleContent>
               </div>
             </Collapsible>
+          </ComingSoonOverlay>
 
             {/* 10. 実行ボタン（Phase 4） */}
             <div className="simple-card p-4 bg-gradient-to-br from-primary/10 to-primary/5 hidden lg:block">

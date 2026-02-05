@@ -61,14 +61,12 @@ export const DIFFICULTY_PRESETS: DifficultyPreset[] = [
   {
     id: 'professional',
     name: 'プロフェッショナル',
-    description: '詳細な分析と法令参照',
+    description: '詳細な分析と法令参照に最適',
     icon: 'zap',
     features: [
-      'e-Gov法令クロスリファレンス',
-      '関連文書の再帰的取得（2階層）',
-      '詳細な条文抜粋',
-      '拡張検索（20件まで）',
-      '実証モード',
+      'e-Gov法令参照の自動取得',
+      '関連文書の再帰的探索',
+      '詳細検索（20件まで）',
     ],
     settings: {
       detailLevel: 'detailed',

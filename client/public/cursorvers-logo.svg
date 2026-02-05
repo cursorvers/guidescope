@@ -1,7 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <!-- Cursor arrow with orbit ring - Cursorvers Inc. logo -->
-  <ellipse cx="50" cy="50" rx="40" ry="20" stroke="#5B7B9A" stroke-width="3" fill="none" transform="rotate(-30 50 50)"/>
-  <path d="M45 30 L45 70 L55 60 L65 65 L45 30" fill="#5B7B9A"/>
-  <circle cx="38" cy="32" r="3" fill="#FFFFFF"/>
-  <path d="M36 30 L40 34 M40 30 L36 34" stroke="#FFFFFF" stroke-width="1.5"/>
+  <ellipse cx="50" cy="50" rx="40" ry="20" stroke="#3B82F6" stroke-width="4" fill="none" transform="rotate(-30 50 50)"/>
+  <path d="M45 30 L45 70 L55 60 L65 65 L45 30" fill="#3B82F6"/>
+  <circle cx="38" cy="32" r="4" fill="#3B82F6"/>
 </svg>
