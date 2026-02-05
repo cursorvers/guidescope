@@ -403,15 +403,33 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border">
-        <div className="container flex items-center justify-between h-14">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-primary-foreground" />
+        <div className="container flex items-center justify-between h-16">
+          <div className="flex items-center gap-4">
+            {/* Product Name - Primary */}
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-sm">
+                <Sparkles className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold tracking-tight text-foreground">GuideScope</h1>
+                <p className="text-[10px] text-muted-foreground leading-tight">生成AI 国内ガイドライン検索</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-base font-semibold leading-tight">GuideScope</h1>
-              <p className="text-xs text-muted-foreground">生成AI 国内ガイドライン検索プロンプト設計</p>
-            </div>
+
+            {/* Cursorvers Branding - Secondary */}
+            <a
+              href="https://cursorvers.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:flex items-center gap-1.5 pl-4 border-l border-border/50 hover:opacity-80 transition-opacity"
+            >
+              <img
+                src="/cursorvers-logo.svg"
+                alt="Cursorvers"
+                className="w-5 h-5 object-contain"
+              />
+              <span className="text-[10px] text-muted-foreground font-medium">Cursorvers Inc.</span>
+            </a>
           </div>
           <div className="flex items-center gap-2">
             <Button
