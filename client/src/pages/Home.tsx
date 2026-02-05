@@ -34,6 +34,8 @@ import {
   ExternalLink,
   MessageCircle,
   Flag,
+  Code,
+  Terminal,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -148,6 +150,7 @@ export default function Home() {
     categories: false,
     keywords: false,
     domains: false,
+    api: false,
   });
   const [showIntroModal, setShowIntroModal] = useState(false);
   const [hasExecutedBefore, setHasExecutedBefore] = useState(() => {
@@ -853,7 +856,87 @@ export default function Home() {
               </Collapsible>
             </ComingSoonOverlay>
 
-            {/* 9. 実行ボタン（Phase 4） */}
+            {/* 9. API / プログラムから使う */}
+            <Collapsible
+              open={sectionsOpen.api}
+              onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, api: open })}
+            >
+              <div className="simple-card">
+                <CollapsibleTrigger className="collapsible-header">
+                  <div className="flex items-center gap-2">
+                    <Code className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-medium">API / プログラムから使う</span>
+                  </div>
+                  {sectionsOpen.api ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                </CollapsibleTrigger>
+                <CollapsibleContent className="collapsible-content">
+                  <div className="space-y-4 text-xs">
+                    {/* npm パッケージ */}
+                    <div>
+                      <h4 className="font-semibold text-sm flex items-center gap-1 mb-2">
+                        <Terminal className="w-3 h-3" />
+                        npm パッケージ
+                      </h4>
+                      <div className="bg-muted/50 p-3 rounded-lg font-mono space-y-2">
+                        <p className="text-muted-foreground"># インストール</p>
+                        <code className="block">npm install @cursorvers/guidescope</code>
+                      </div>
+                      <div className="bg-muted/50 p-3 rounded-lg font-mono mt-2">
+                        <p className="text-muted-foreground mb-1"># 使用例</p>
+                        <pre className="text-xs whitespace-pre-wrap">{`import { generate } from '@cursorvers/guidescope';
+
+const result = generate({
+  query: '医療AIの臨床導入',
+  preset: 'medical-device',
+  difficulty: 'professional',
+});
+
+console.log(result.prompt);`}</pre>
+                      </div>
+                    </div>
+
+                    {/* MCP サーバー */}
+                    <div>
+                      <h4 className="font-semibold text-sm flex items-center gap-1 mb-2">
+                        <Sparkles className="w-3 h-3" />
+                        MCP サーバー（Claude Desktop / Cursor）
+                      </h4>
+                      <p className="text-muted-foreground mb-2">
+                        設定ファイルに追加:
+                      </p>
+                      <div className="bg-muted/50 p-3 rounded-lg font-mono">
+                        <pre className="text-xs whitespace-pre-wrap">{`{
+  "mcpServers": {
+    "guidescope": {
+      "command": "npx",
+      "args": ["@cursorvers/guidescope-mcp"]
+    }
+  }
+}`}</pre>
+                      </div>
+                      <p className="text-muted-foreground mt-2">
+                        利用可能なツール: <code className="bg-muted px-1 rounded">generate</code>, <code className="bg-muted px-1 rounded">generatePrompt</code>, <code className="bg-muted px-1 rounded">generateSearchQueries</code>, <code className="bg-muted px-1 rounded">listPresets</code>
+                      </p>
+                    </div>
+
+                    {/* GitHub リンク */}
+                    <div className="pt-2 border-t border-border">
+                      <a
+                        href="https://github.com/cursorvers/guidescope"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-primary hover:underline"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        GitHub で詳細を見る
+                      </a>
+                    </div>
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+
+            {/* 10. 実行ボタン（Phase 4） */}
             <div className="simple-card p-4 bg-gradient-to-br from-primary/10 to-primary/5 hidden lg:block">
               <ExecuteButtonBar onExecute={handleExecute} disabled={isExecuteDisabled} />
             </div>
