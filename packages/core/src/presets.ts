@@ -142,6 +142,7 @@ export function getTabPreset(id: string): TabPreset {
 
 export const DEFAULT_PRIORITY_DOMAINS = [
   'mhlw.go.jp',
+  'ppc.go.jp',
   'meti.go.jp',
   'soumu.go.jp',
   'pmda.go.jp',
@@ -158,6 +159,10 @@ export const DEFAULT_SCOPE_OPTIONS = [
   'SaMD',
   '医療情報セキュリティ',
   '医療データ利活用',
+  '個人情報保護（APPI）',
+  '匿名加工情報',
+  '仮名加工情報',
+  '次世代医療基盤法',
   '研究倫理',
 ];
 

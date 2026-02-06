@@ -99,6 +99,7 @@ ${eGovVariables}`;
 2. 公式優先
    ・根拠は必ず公式一次資料(公式Web/公式PDF)に限定する
    ・同名文書が複数版ある場合、${search.priorityRule === 'revised_date' ? '改定日が最も新しい最新版' : search.priorityRule === 'published_date' ? '公開日が最も新しい版' : '関連度が最も高い版'}を優先する
+   ・個人情報/同意/匿名化/二次利用が論点に含まれる場合は、個人情報保護法(APPI)と個人情報保護委員会のガイドラインも一次資料で確認する
    ・優先ドメイン:
 [[PRIORITY_DOMAINS_LIST]]
 
