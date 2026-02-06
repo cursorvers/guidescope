@@ -20,7 +20,8 @@ export const DIFFICULTY_PRESETS: DifficultyPreset[] = [
       '基本的な検索（10件まで）',
     ],
     settings: {
-      detailLevel: 'standard',
+      // Keep it light: summary + references + short guideline list
+      detailLevel: 'concise',
       eGovCrossReference: false,
       includeLawExcerpts: false,
       recursiveDepth: 0,

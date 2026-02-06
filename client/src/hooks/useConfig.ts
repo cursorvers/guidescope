@@ -116,6 +116,21 @@ export function useConfig() {
           proofMode: defaults.proofMode,
         };
       }
+      if (field === 'difficultyLevel' && value === 'professional') {
+        // Professional defaults: everything on, user can opt out.
+        return {
+          ...prev,
+          difficultyLevel: value,
+          threeMinistryGuidelines: true,
+          officialDomainPriority: true,
+          siteOperator: true,
+          latestVersionPriority: true,
+          pdfDirectLink: true,
+          includeSearchLog: true,
+          eGovCrossReference: true,
+          proofMode: true,
+        };
+      }
       return { ...prev, [field]: value };
     });
   }, []);

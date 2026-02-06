@@ -182,22 +182,16 @@ describe('generatePrompt()', () => {
 
   describe('e-Gov Section', () => {
     it('should include e-Gov section when eGovCrossReference is enabled', () => {
-      const config = createTestConfig({ difficultyLevel: 'professional' });
-      const settings = createTestSettings({
-        output: { ...createDefaultExtendedSettings().output, eGovCrossReference: true },
-      });
-      const prompt = generatePrompt(config, settings);
+      const config = createTestConfig({ difficultyLevel: 'professional', eGovCrossReference: true });
+      const prompt = generatePrompt(config, createTestSettings());
 
       expect(prompt).toContain('e-Gov法令取得');
       expect(prompt).toContain('laws.e-gov.go.jp');
     });
 
     it('should not include e-Gov section when eGovCrossReference is disabled', () => {
-      const config = createTestConfig({ difficultyLevel: 'professional' });
-      const settings = createTestSettings({
-        output: { ...createDefaultExtendedSettings().output, eGovCrossReference: false },
-      });
-      const prompt = generatePrompt(config, settings);
+      const config = createTestConfig({ difficultyLevel: 'professional', eGovCrossReference: false });
+      const prompt = generatePrompt(config, createTestSettings());
 
       expect(prompt).not.toContain('e-Gov法令取得');
     });
@@ -328,22 +322,23 @@ describe('generatePrompt()', () => {
     });
 
     it('should respect search log setting', () => {
-      const config = createTestConfig({ difficultyLevel: 'professional' });
+      const configWithLog = createTestConfig({ difficultyLevel: 'professional', includeSearchLog: true });
 
       // With search log
       const settingsWithLog = createTestSettings();
       settingsWithLog.output.includeSearchLog = true;
-      const promptWithLog = generatePrompt(config, settingsWithLog);
+      const promptWithLog = generatePrompt(configWithLog, settingsWithLog);
       expect(promptWithLog).toContain('■ 検索ログ');
 
       // Without search log
+      const configWithoutLog = createTestConfig({ difficultyLevel: 'professional', includeSearchLog: false });
       const settingsWithoutLog = createTestSettings();
       settingsWithoutLog.output.includeSearchLog = false;
       // Need to also disable the search_log output section
       settingsWithoutLog.template.outputSections = settingsWithoutLog.template.outputSections.map(
         s => s.id === 'search_log' ? { ...s, enabled: false } : s
       );
-      const promptWithoutLog = generatePrompt(config, settingsWithoutLog);
+      const promptWithoutLog = generatePrompt(configWithoutLog, settingsWithoutLog);
       expect(promptWithoutLog).not.toContain('■ 検索ログ');
     });
   });

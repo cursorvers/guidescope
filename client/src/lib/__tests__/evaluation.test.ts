@@ -307,14 +307,14 @@ describe('Evaluation Test Cases', () => {
       const extSettings = createTestSettings({
         output: {
           ...createDefaultExtendedSettings().output,
-          eGovCrossReference: true, // Explicit setting should be respected
+          eGovCrossReference: true,
         },
       });
 
       const prompt = generatePrompt(config, extSettings);
 
-      // With explicit extSettings, eGovCrossReference should be respected
-      expect(prompt).toContain('e-Gov');
+      // Switch toggles in AppConfig are the source of truth.
+      expect(prompt).not.toContain('e-Gov');
     });
   });
 

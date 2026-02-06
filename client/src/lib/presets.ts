@@ -50,7 +50,8 @@ export const DIFFICULTY_PRESETS: DifficultyPreset[] = [
       '基本的な検索（10件まで）',
     ],
     settings: {
-      detailLevel: 'standard',
+      // Keep it light: summary + references + short guideline list
+      detailLevel: 'concise',
       eGovCrossReference: false,
       includeLawExcerpts: false,
       recursiveDepth: 0,
@@ -251,7 +252,8 @@ export const TAB_PRESETS: TabPreset[] = [
 // Default Config Factory
 // ============================================================================
 
-export function createDefaultConfig(tabId: string = 'medical-device'): AppConfig {
+// Default is tuned for "Standard": quick checks by general medical staff.
+export function createDefaultConfig(tabId: string = 'clinical-operation'): AppConfig {
   const preset = TAB_PRESETS.find(t => t.id === tabId) || TAB_PRESETS[0];
   const today = new Date();
   const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -259,8 +261,8 @@ export function createDefaultConfig(tabId: string = 'medical-device'): AppConfig
   return {
     dateToday: dateStr,
     query: '',
-    scope: ['医療AI'],
-    audiences: ['医療機関', '開発企業'],
+    scope: ['医療情報セキュリティ', '医療AI'],
+    audiences: ['医療機関'],
     difficultyLevel: 'standard',
 
     threeMinistryGuidelines: true,
@@ -268,9 +270,9 @@ export function createDefaultConfig(tabId: string = 'medical-device'): AppConfig
     siteOperator: true,
     latestVersionPriority: true,
     pdfDirectLink: true,
-    includeSearchLog: true,
+    includeSearchLog: false,
     eGovCrossReference: false,
-    proofMode: true,
+    proofMode: false,
     
     categories: preset.categories.map(name => ({ name, enabled: true })),
     keywordChips: preset.keywordChips.map(name => ({ name, enabled: true })),

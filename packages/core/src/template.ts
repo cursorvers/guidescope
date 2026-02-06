@@ -82,6 +82,20 @@ function formatList(items: string[], prefix: string = '・'): string {
   return items.map(item => `${prefix}${item}`).join('\n');
 }
 
+function filterOutputSectionsForDifficulty(
+  sections: ExtendedSettings['template']['outputSections'],
+  difficultyLevel: DifficultyLevel
+) {
+  if (difficultyLevel !== 'standard') return sections;
+
+  // Standard: keep output lightweight and distinct.
+  const allowed = new Set(['guideline_list', 'three_ministry']);
+  return sections.map((s) => ({
+    ...s,
+    enabled: s.enabled && allowed.has(s.id),
+  }));
+}
+
 function getTodayDate(): string {
   const today = new Date();
   return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -94,22 +108,23 @@ function getTodayDate(): string {
 export function createConfig(options: GeneratePromptOptions): AppConfig {
   const preset = getTabPreset(options.preset || 'medical-device');
   const date = options.date || getTodayDate();
+  const difficulty = options.difficulty || 'standard';
 
   return {
     dateToday: date,
     query: options.query,
     scope: options.scope || ['医療AI'],
     audiences: options.audiences || ['医療機関', '開発企業'],
-    difficultyLevel: options.difficulty || 'standard',
+    difficultyLevel: difficulty,
 
     threeMinistryGuidelines: true,
     officialDomainPriority: true,
     siteOperator: true,
     latestVersionPriority: true,
     pdfDirectLink: true,
-    includeSearchLog: true,
-    eGovCrossReference: false,
-    proofMode: false,
+    includeSearchLog: difficulty === 'professional',
+    eGovCrossReference: difficulty === 'professional',
+    proofMode: difficulty === 'professional',
 
     categories: preset.categories.map(name => ({ name, enabled: true })),
     keywordChips: preset.keywordChips.map(name => ({ name, enabled: true })),
@@ -147,6 +162,16 @@ ${template.disclaimers.map(d => `- ${d}`).join('\n')}`;
 PROOF_SECTION_END`;
 
   // Build model definition
+  const eGovVariables = output.eGovCrossReference
+    ? `
+
+$Law_name$: 法令名
+$Law_ID$: e-Gov法令ID
+$U_xml$: e-Gov API URL
+$U_web$: e-Gov Web URL
+$Law_xml$: 取得したXML`
+    : '';
+
   const modelDefinition = `# Model Definition
 
 ## Variables
@@ -166,12 +191,7 @@ $Doc_url$: 公式URL
 $Doc_type$: 文書種別
 $Fetched_text$: 取得した本文テキスト
 $RelevantSection$: 関連する本文箇所
-
-$Law_name$: 法令名
-$Law_ID$: e-Gov法令ID
-$U_xml$: e-Gov API URL
-$U_web$: e-Gov Web URL
-$Law_xml$: 取得したXML`;
+${eGovVariables}`;
 
   // Build rules section
   let rulesSection = `## Rules (Strict Logic)
@@ -220,6 +240,15 @@ ${search.excludedDomains.map(d => `     - ${d}`).join('\n')}`;
    Web用: https://laws.e-gov.go.jp/law/{$Law_ID}
 EGOV_SECTION_END`;
 
+  const lawCrossRefPhase = output.eGovCrossReference
+    ? `## Phase 4: 法令クロスリファレンス(必要時)
+1. 各文書で参照されている主要な法令名を抽出する
+2. e-Govで法令IDを特定し、該当条文を取得する`
+    : `## Phase 4: 法令クロスリファレンス(必要時)
+1. 各文書で参照されている主要な法令名を抽出する
+2. 公式一次資料(法令本文、官報、所管省庁の公式ページなど)で該当条文を確認できる場合は、短い抜粋を含める
+3. 一次資料で確認できない場合は「一次資料未確認」と明記する`;
+
   // Build task section
   const taskSection = `# Task
 
@@ -238,20 +267,21 @@ EGOV_SECTION_END`;
 1. 「3省2ガイドライン」を構成する文書を確定する
 2. 医療AIに関する他の国内ガイドラインも、最新版と根拠URLを確定する
 
-## Phase 4: 法令クロスリファレンス(必要時)
-1. 各文書で参照されている主要な法令名を抽出する
-2. e-Govで法令IDを特定し、該当条文を取得する
+${lawCrossRefPhase}
 
 ## Phase 5: 個別ケース分析
 1. $Query$ を分解し、直接適用可能な記載を抽出する
 2. 該当箇所は原文を引用する`;
 
   // Build output format section
-  const enabledSections = template.outputSections
+  const enabledSections = filterOutputSectionsForDifficulty(template.outputSections, difficultyLevel)
     .filter(s => s.enabled)
     .sort((a, b) => a.order - b.order);
 
   let outputFormatSection = `# Output Format\n`;
+  const lawSourcesLine = output.eGovCrossReference
+    ? '・法令は [XMLデータ(API)](U_xml) と [公式閲覧(e-Gov)](U_web)'
+    : '・法令参照が必要な場合は公式一次資料(法令本文/省庁ページ等)を確認する';
 
   if (difficultyLevel === 'standard') {
     outputFormatSection += `
@@ -264,7 +294,7 @@ EGOV_SECTION_END`;
 ■ 引用文献
 ・参照した一次資料を文書単位で列挙する
 ・形式: 文書名（発行主体、改定日） [公式ページ](URL) [PDF](URL)
-・法令は [XMLデータ(API)](U_xml) と [公式閲覧(e-Gov)](U_web)
+${lawSourcesLine}
 `;
   } else {
     outputFormatSection += `
@@ -295,7 +325,7 @@ EGOV_SECTION_END`;
       outputFormatSection += `
 ■ 参照データソース
 ・各文書について [公式ページ](URL) と [PDF](URL) を列挙
-・法令は [XMLデータ(API)](U_xml) と [公式閲覧(e-Gov)](U_web)
+${lawSourcesLine}
 `;
       break;
     case 'guideline_list':
@@ -309,6 +339,14 @@ ${output.detailLevel === 'concise' ? `・タイトル、発行主体、版数、
 `;
       break;
     case 'three_ministry':
+      if (difficultyLevel === 'standard') {
+        outputFormatSection += `
+■ 3省2ガイドライン（要点）
+・「医療機関等」向けと「提供事業者」向けの2系統があることを一次資料で確認し、最新版を特定する
+・医療機関の運用上の要点（責任分界、委託先管理、クラウド利用、監査ログ）を3〜6点で整理する
+`;
+        break;
+      }
       outputFormatSection += `
 ■ 3省2ガイドラインの確定結果
 ・構成文書の対応関係
@@ -419,11 +457,10 @@ export function generatePromptFromConfig(config: AppConfig, extSettings?: Extend
     ...settings,
     output: {
       ...settings.output,
-      detailLevel: presetSettings.detailLevel,
-      eGovCrossReference: isStandard
-        ? presetSettings.eGovCrossReference
-        : (presetSettings.eGovCrossReference || config.eGovCrossReference),
+      detailLevel: isStandard ? presetSettings.detailLevel : settings.output.detailLevel,
+      eGovCrossReference: isStandard ? presetSettings.eGovCrossReference : config.eGovCrossReference,
       includeLawExcerpts: presetSettings.includeLawExcerpts,
+      includeSearchLog: isStandard ? false : config.includeSearchLog,
     },
     search: {
       ...settings.search,
@@ -434,7 +471,7 @@ export function generatePromptFromConfig(config: AppConfig, extSettings?: Extend
 
   const effectiveConfig = {
     ...config,
-    proofMode: isStandard ? presetSettings.proofMode : (presetSettings.proofMode || config.proofMode),
+    proofMode: isStandard ? presetSettings.proofMode : config.proofMode,
   };
 
   let prompt = buildBaseTemplate(adjustedSettings, config.difficultyLevel);

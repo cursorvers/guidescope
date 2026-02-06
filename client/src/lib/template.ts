@@ -19,6 +19,20 @@ function formatList(items: string[], prefix: string = '・'): string {
   return items.map(item => `${prefix}${item}`).join('\n');
 }
 
+function filterOutputSectionsForDifficulty(
+  sections: ExtendedSettings['template']['outputSections'],
+  difficultyLevel: DifficultyLevel
+) {
+  if (difficultyLevel !== 'standard') return sections;
+
+  // Standard: keep output lightweight and distinct.
+  const allowed = new Set(['guideline_list', 'three_ministry']);
+  return sections.map((s) => ({
+    ...s,
+    enabled: s.enabled && allowed.has(s.id),
+  }));
+}
+
 function buildBaseTemplate(extSettings: ExtendedSettings, difficultyLevel: DifficultyLevel): string {
   const { template, output, search } = extSettings;
   
@@ -42,6 +56,16 @@ ${template.disclaimers.map(d => `- ${d}`).join('\n')}`;
 PROOF_SECTION_END`;
 
   // Build model definition
+  const eGovVariables = output.eGovCrossReference
+    ? `
+
+$Law_name$: 法令名
+$Law_ID$: e-Gov法令ID
+$U_xml$: e-Gov API URL
+$U_web$: e-Gov Web URL
+$Law_xml$: $U_xml$ から取得したXML`
+    : '';
+
   const modelDefinition = `# Model Definition
 
 ## Variables
@@ -61,12 +85,7 @@ $Doc_url$: 公式URL(HTMLまたはPDFの直リンク)
 $Doc_type$: 文書種別(ガイドライン、通知、事務連絡、Q&A、手引き、報告書、告示、法令など)
 $Fetched_text$: $Doc_url$ から取得した本文テキスト
 $RelevantSection$: $SpecificQuestion$ に関連する本文箇所（ページ番号・章節番号を含む）
-
-$Law_name$: 法令名
-$Law_ID$: e-Gov法令ID
-$U_xml$: e-Gov API URL
-$U_web$: e-Gov Web URL
-$Law_xml$: $U_xml$ から取得したXML`;
+${eGovVariables}`;
 
   // Build rules section
   let rulesSection = `## Rules (Strict Logic)
@@ -129,6 +148,17 @@ ${search.excludedDomains.map(d => `     - ${d}`).join('\n')}`;
    https://laws.e-gov.go.jp/law/{$Law_ID}
 EGOV_SECTION_END`;
 
+  const lawCrossRefPhase = output.eGovCrossReference
+    ? `## Phase 4: 法令クロスリファレンス(必要時)
+1. 各文書で参照されている主要な法令名を抽出する
+2. e-Govで法令IDを特定できる場合、固定フォーマットのAPI URLを生成してXMLを取得する
+3. 医療AIに関係する条文参照がある場合のみ、該当条文を短く引用し、どの要求事項と紐付くか整理する
+4. 法令IDを特定できない場合は「法令ID特定不能」と明記する`
+    : `## Phase 4: 法令クロスリファレンス(必要時)
+1. 各文書で参照されている主要な法令名を抽出する
+2. 公式一次資料(法令本文、官報、所管省庁の公式ページなど)で該当条文を確認できる場合は、短い抜粋を含める
+3. 一次資料で確認できない場合は「一次資料未確認」と明記する`;
+
   // Build task section
   const taskSection = `# Task
 
@@ -166,12 +196,7 @@ EGOV_SECTION_END`;
    ・対象(医療機関向け、提供事業者向け等)
    ・公式URL(ページとPDF)
 2. 医療AIに関する他の国内ガイドラインも、同様に最新版と根拠URLを確定する
-
-## Phase 4: 法令クロスリファレンス(必要時)
-1. 各文書で参照されている主要な法令名を抽出する
-2. e-Govで法令IDを特定できる場合、固定フォーマットのAPI URLを生成してXMLを取得する
-3. 医療AIに関係する条文参照がある場合のみ、該当条文を短く引用し、どの要求事項と紐付くか整理する
-4. 法令IDを特定できない場合は「法令ID特定不能」と明記する
+${lawCrossRefPhase}
 
 ## Phase 5: 個別ケース分析（$SpecificQuestion$ が与えられた場合）
 1. $Query$ を「具体的に何を知りたいか」という観点で分解する
@@ -203,11 +228,20 @@ EGOV_SECTION_END`;
    ・信頼度が低い情報源（二次資料のみ）は注意喚起を付す`;
 
   // Build output format section based on enabled sections
-  const enabledSections = template.outputSections
+  const enabledSections = filterOutputSectionsForDifficulty(template.outputSections, difficultyLevel)
     .filter(s => s.enabled)
     .sort((a, b) => a.order - b.order);
   
   let outputFormatSection = `# Output Format\n`;
+  const lawSourcesLine = output.eGovCrossReference
+    ? '・法令は [XMLデータ(API)](U_xml) と [公式閲覧(e-Gov)](U_web)'
+    : '・法令参照が必要な場合は公式一次資料(法令本文/省庁ページ等)を確認する';
+  const guidelineListLawLine = output.eGovCrossReference
+    ? '・関連法令(e-Govリンク、該当条文の抜粋)'
+    : '・関連法令(該当条文の短い抜粋。一次資料未確認は明記)';
+  const guidelineListLawLineShort = output.eGovCrossReference
+    ? '・関連法令(e-Govリンク、可能なら該当条文の短い抜粋)'
+    : '・関連法令(可能なら該当条文の短い抜粋。一次資料未確認は明記)';
 
   if (difficultyLevel === 'standard') {
     outputFormatSection += `
@@ -220,7 +254,7 @@ EGOV_SECTION_END`;
 ■ 引用文献
 ・参照した一次資料を文書単位で列挙する
 ・形式: 文書名（発行主体、改定日） [公式ページ](URL) [PDF](URL)
-・法令は [XMLデータ(API)](U_xml) と [公式閲覧(e-Gov)](U_web)
+${lawSourcesLine}
 `;
   } else {
     outputFormatSection += `
@@ -253,7 +287,7 @@ EGOV_SECTION_END`;
       outputFormatSection += `
 ■ 参照データソース
 ・各文書について [公式ページ](URL) と [PDF](URL) を列挙(存在する方のみ)
-・法令は [XMLデータ(API)](U_xml) と [公式閲覧(e-Gov)](U_web)
+${lawSourcesLine}
 `;
       break;
     case 'guideline_list':
@@ -269,7 +303,7 @@ ${output.detailLevel === 'concise' ? `・タイトル
 ・最新版の版数と改定日
 ・対象者と適用範囲
 ・医療AIとの関係(本文の根拠となる詳細な抜粋と要約)
-・関連法令(e-Govリンク、該当条文の抜粋)
+${guidelineListLawLine}
 ・関連する他のガイドライン
 ・実務上の重要ポイント` : `・タイトル
 ・発行主体
@@ -277,13 +311,21 @@ ${output.detailLevel === 'concise' ? `・タイトル
 ・最新版の版数と改定日
 ・対象者と適用範囲
 ・医療AIとの関係(本文の根拠となる短い抜粋と要約)
-・関連法令(e-Govリンク、可能なら該当条文の短い抜粋)`}
+${guidelineListLawLineShort}`}
 
 カテゴリ例
 [[CATEGORIES_LIST]]
 `;
       break;
     case 'three_ministry':
+      if (difficultyLevel === 'standard') {
+        outputFormatSection += `
+■ 3省2ガイドライン（要点）
+・「医療機関等」向けと「提供事業者」向けの2系統があることを一次資料で確認し、最新版を特定する
+・医療機関の運用上の要点（責任分界、委託先管理、クラウド利用、監査ログ）を3〜6点で整理する
+`;
+        break;
+      }
       outputFormatSection += `
 ■ 3省2ガイドラインの確定結果
 
@@ -381,7 +423,7 @@ ${output.detailLevel === 'concise' ? `・タイトル
 ・一次資料を開けない、本文を取得できない場合は、その旨を明記して推測しない
 ・最新版か不明な場合は、候補の改定日を比較し「最新版候補」として扱う
 ・出力リンクは必ず [表示ラベル](URL) 形式に統一する
-・e-Govは上記の固定フォーマットのみを使い、検索エンジン経由のURL生成をしない
+${output.eGovCrossReference ? '・e-Govは上記の固定フォーマットのみを使い、検索エンジン経由のURL生成をしない' : ''}
 `;
       break;
     }
@@ -456,35 +498,28 @@ export function generatePrompt(config: AppConfig, extSettings?: ExtendedSettings
   const presetSettings = difficultyPreset.settings;
 
   // Apply difficulty preset to settings
-  // If extSettings is explicitly provided, use its values; otherwise apply difficulty preset
   const isStandard = config.difficultyLevel === 'standard';
-  const hasExplicitSettings = !!extSettings && !isStandard;
   const adjustedSettings: ExtendedSettings = {
     ...settings,
     output: {
       ...settings.output,
-      // Use explicit settings if provided, otherwise apply difficulty preset
-      detailLevel: hasExplicitSettings ? settings.output.detailLevel : presetSettings.detailLevel,
-      eGovCrossReference: isStandard
-        ? presetSettings.eGovCrossReference
-        : (hasExplicitSettings
-          ? settings.output.eGovCrossReference
-          : (presetSettings.eGovCrossReference || config.eGovCrossReference)),
-      includeLawExcerpts: isStandard
-        ? presetSettings.includeLawExcerpts
-        : (hasExplicitSettings ? settings.output.includeLawExcerpts : presetSettings.includeLawExcerpts),
+      // Difficulty decides baseline; config toggles are the source of truth for switches.
+      detailLevel: isStandard ? presetSettings.detailLevel : settings.output.detailLevel,
+      eGovCrossReference: isStandard ? presetSettings.eGovCrossReference : config.eGovCrossReference,
+      includeLawExcerpts: presetSettings.includeLawExcerpts,
+      includeSearchLog: isStandard ? false : config.includeSearchLog,
     },
     search: {
       ...settings.search,
-      recursiveDepth: hasExplicitSettings ? settings.search.recursiveDepth : presetSettings.recursiveDepth,
-      maxResults: hasExplicitSettings ? settings.search.maxResults : presetSettings.maxResults,
+      recursiveDepth: presetSettings.recursiveDepth,
+      maxResults: presetSettings.maxResults,
     },
   };
 
   // Override proofMode from preset if professional
   const effectiveConfig = {
     ...config,
-    proofMode: isStandard ? presetSettings.proofMode : (presetSettings.proofMode || config.proofMode),
+    proofMode: isStandard ? presetSettings.proofMode : config.proofMode,
   };
 
   let prompt = buildBaseTemplate(adjustedSettings, config.difficultyLevel);
