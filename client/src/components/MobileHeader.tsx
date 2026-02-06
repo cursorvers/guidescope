@@ -26,7 +26,10 @@ export function MobileHeader() {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => setLocation('/')}
+            onClick={() => {
+              setLocation('/');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
             className="flex items-center gap-3 flex-1 min-w-0 text-left rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 hover:opacity-90 transition-opacity"
             aria-label="トップページへ戻る"
           >

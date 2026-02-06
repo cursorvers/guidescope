@@ -26,7 +26,10 @@ export function Header() {
           {/* Logo and Title */}
           <button
             type="button"
-            onClick={() => setLocation('/')}
+            onClick={() => {
+              setLocation('/');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
             className="flex items-center gap-4 text-left rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 hover:opacity-90 transition-opacity"
             aria-label="トップページへ戻る"
           >
