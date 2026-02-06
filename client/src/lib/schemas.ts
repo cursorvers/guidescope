@@ -47,6 +47,9 @@ export const AppConfigSchema = z.object({
   audiences: z.array(z.string()),
   difficultyLevel: DifficultyLevelSchema.default('standard'),
 
+  // Optional inputs (user-provided documents)
+  vendorDocText: z.string(),
+
   // Switches
   threeMinistryGuidelines: z.boolean(),
   officialDomainPriority: z.boolean(),

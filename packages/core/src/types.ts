@@ -57,6 +57,10 @@ export interface AppConfig {
   audiences: string[];
   difficultyLevel: DifficultyLevel;
 
+  // Optional inputs (user-provided documents)
+  // Used for contract/spec audits. Plain text only.
+  vendorDocText: string;
+
   // Switches
   threeMinistryGuidelines: boolean;
   officialDomainPriority: boolean;

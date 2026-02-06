@@ -514,6 +514,9 @@ Optional_keywords:
 Exclude_keywords:
 [[EXCLUDE_KEYWORDS_LIST]]
 
+VendorDoc:
+[[VENDOR_DOC]]
+
 Instruction:
 次の条件で検索と整理を実行し、SpecificQuestion に対する具体的な回答を提供せよ。
 - 必須検索語: Must_keywords
@@ -637,6 +640,12 @@ export function generatePrompt(config: AppConfig, extSettings?: ExtendedSettings
     '[[EXCLUDE_KEYWORDS_LIST]]',
     formatList(config.excludeKeywords.filter(k => k.trim()))
   );
+
+  // Replace vendor doc (user-provided)
+  const vendorDoc = config.vendorDocText?.trim()
+    ? config.vendorDocText.trim()
+    : '(なし)';
+  prompt = prompt.replace(/\[\[VENDOR_DOC\]\]/g, vendorDoc);
   
   // Replace categories
   const enabledCategories = config.categories.filter(c => c.enabled).map(c => c.name);

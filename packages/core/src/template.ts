@@ -116,6 +116,7 @@ export function createConfig(options: GeneratePromptOptions): AppConfig {
     scope: options.scope || ['医療AI'],
     audiences: options.audiences || ['医療機関', '開発企業'],
     difficultyLevel: difficulty,
+    vendorDocText: '',
 
     threeMinistryGuidelines: true,
     officialDomainPriority: true,
@@ -471,6 +472,9 @@ Optional_keywords:
 Exclude_keywords:
 [[EXCLUDE_KEYWORDS_LIST]]
 
+VendorDoc:
+[[VENDOR_DOC]]
+
 Instruction:
 次の条件で検索と整理を実行し、SpecificQuestion に対する具体的な回答を提供せよ。`;
 
@@ -561,6 +565,10 @@ export function generatePromptFromConfig(config: AppConfig, extSettings?: Extend
   ];
   prompt = prompt.replace(/\[\[OPTIONAL_KEYWORDS_LIST\]\]/g, formatList(optionalKeywords));
   prompt = prompt.replace('[[EXCLUDE_KEYWORDS_LIST]]', formatList(config.excludeKeywords.filter(k => k.trim())));
+
+  // User-provided document (contract/spec excerpt)
+  const vendorDoc = config.vendorDocText?.trim() ? config.vendorDocText.trim() : '(なし)';
+  prompt = prompt.replace(/\[\[VENDOR_DOC\]\]/g, vendorDoc);
 
   const enabledCategories = config.categories.filter(c => c.enabled).map(c => c.name);
   prompt = prompt.replace('[[CATEGORIES_LIST]]', formatList(enabledCategories));

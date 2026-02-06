@@ -7,6 +7,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -611,12 +612,15 @@ export default function Home() {
                   必須
                 </span>
               </div>
-              <Input
+              <Textarea
                 id="query"
                 value={config.query}
                 onChange={(e) => updateField('query', e.target.value)}
                 placeholder="例: 医療AIの臨床導入における安全管理"
-                className={cn("h-7 text-xs", !config.query && "border-amber-300/50")}
+                className={cn(
+                  "min-h-12 text-sm leading-relaxed",
+                  !config.query && "border-amber-300/50"
+                )}
               />
 
               {/* プライバシー警告 */}
@@ -631,6 +635,67 @@ export default function Home() {
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* 1.2 添付資料（契約書/仕様書の抜粋など） */}
+            <div className="simple-card p-2">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Label htmlFor="vendorDoc" className="text-xs font-medium">
+                  添付資料（契約書/仕様書の抜粋）
+                </Label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button className="text-muted-foreground hover:text-foreground">
+                      <HelpCircle className="w-3 h-3" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-xs">
+                    <p className="text-xs">
+                      ベンダー契約書や仕様書の該当条項を貼り付けると、ガイドライン要求との突合（監査観点）をプロンプトに含めます。PDFの自動読取は未対応なので、必要箇所をテキストで抜粋してください。
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+                <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                  任意
+                </span>
+              </div>
+
+              <Textarea
+                id="vendorDoc"
+                value={config.vendorDocText}
+                onChange={(e) => updateField('vendorDocText', e.target.value)}
+                placeholder="例: 第X条（データの取扱い）... / 保存期間... / 学習利用の有無... / 再委託... / 監査権限..."
+                className="min-h-24 text-sm leading-relaxed"
+              />
+
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
+                  onClick={() => updateField('vendorDocText', '')}
+                >
+                  クリア
+                </button>
+
+                <button
+                  type="button"
+                  className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
+                  onClick={() => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.txt,text/plain';
+                    input.onchange = async (e) => {
+                      const file = (e.target as HTMLInputElement).files?.[0];
+                      if (!file) return;
+                      const text = await file.text();
+                      updateField('vendorDocText', text);
+                    };
+                    input.click();
+                  }}
+                >
+                  .txtを読み込む
+                </button>
+              </div>
             </div>
 
             {/* 1.5. 難易度選択（Phase 5） */}

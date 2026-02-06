@@ -94,6 +94,10 @@ export interface AppConfig {
   audiences: string[];
   difficultyLevel: DifficultyLevel;
 
+  // Optional inputs (user-provided documents)
+  // Used for contract/spec audits. Keep as plain text to avoid PDF parsing in-browser.
+  vendorDocText: string;
+
   // Switches
   threeMinistryGuidelines: boolean;
   officialDomainPriority: boolean;
@@ -269,6 +273,7 @@ export function createDefaultConfig(tabId: string = 'clinical-operation'): AppCo
     scope: ['医療情報セキュリティ', '医療AI'],
     audiences: ['医療機関'],
     difficultyLevel: 'standard',
+    vendorDocText: '',
 
     threeMinistryGuidelines: true,
     officialDomainPriority: true,
