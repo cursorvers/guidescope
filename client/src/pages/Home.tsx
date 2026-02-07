@@ -3,7 +3,7 @@
  * X反応確認用ミニマル版対応
  */
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -162,6 +162,8 @@ export default function Home() {
     message: string;
     planB: string[];
   }>(null);
+  const [isVendorDocDragActive, setIsVendorDocDragActive] = useState(false);
+  const vendorDocDragCounterRef = useRef(0);
   const [sectionsOpen, setSectionsOpen] = useState({
     scope: true,
     audience: true,
@@ -280,6 +282,46 @@ export default function Home() {
       setVendorDocProgress(null);
     }
   }, [updateField, vendorDocRelevantOnly]);
+
+  const handleVendorDocDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    vendorDocDragCounterRef.current += 1;
+    setIsVendorDocDragActive(true);
+  }, []);
+
+  const handleVendorDocDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    vendorDocDragCounterRef.current = Math.max(0, vendorDocDragCounterRef.current - 1);
+    if (vendorDocDragCounterRef.current === 0) {
+      setIsVendorDocDragActive(false);
+    }
+  }, []);
+
+  const handleVendorDocDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleVendorDocDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    vendorDocDragCounterRef.current = 0;
+    setIsVendorDocDragActive(false);
+
+    if (vendorDocLoading) return;
+    const files = e.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+
+    if (files.length > 1) {
+      toast.info('複数ファイルが検出されました', {
+        description: '最初の1ファイルのみ読み込みます',
+      });
+    }
+
+    await importVendorDocFromFile(files[0]);
+  }, [importVendorDocFromFile, vendorDocLoading]);
 
   // プライバシー警告の検出
   const privacyWarnings = useMemo(() => {
@@ -754,7 +796,16 @@ export default function Home() {
             </div>
 
             {/* 1.2 添付資料（契約書/仕様書の抜粋など） */}
-            <div className="simple-card p-2">
+            <div
+              className={cn(
+                'simple-card p-2 transition-colors',
+                isVendorDocDragActive && 'ring-2 ring-primary/35 bg-primary/5'
+              )}
+              onDragEnter={handleVendorDocDragEnter}
+              onDragLeave={handleVendorDocDragLeave}
+              onDragOver={handleVendorDocDragOver}
+              onDrop={handleVendorDocDrop}
+            >
               <div className="flex items-center gap-1.5 mb-1">
                 <Label htmlFor="vendorDoc" className="text-sm font-medium">
                   添付資料（契約書/仕様書の抜粋）
@@ -825,6 +876,10 @@ export default function Home() {
                   </button>
                 </div>
               </div>
+
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                PDF/.txtはドラッグ&ドロップにも対応しています（この枠内にドロップ）。
+              </p>
 
               {vendorDocLoading && vendorDocProgress && (
                 <div className="mt-2">
