@@ -67,6 +67,8 @@ const TEXT_INPUT_TYPES = new Set(['text', 'search', 'email', 'number', 'tel', 'u
 
 type QueryTemplateId = 'free' | 'compliance_check' | 'responsibility_split';
 
+const DEFAULT_VENDOR_SUBJECT = '添付資料（契約書/仕様書の抜粋）';
+
 function extractSubjectFromQuery(raw: string) {
   const q = raw.trim();
   if (!q) return '';
@@ -228,6 +230,33 @@ export default function Home() {
   const disabledReason = shouldShowValidation ? (validation.errors[0] || '') : '';
   const isExecuteDisabled = vendorDocLoading;
 
+  const maybeAutofillQueryForVendorDoc = useCallback(
+    (nextVendorDocText: string) => {
+      if (!nextVendorDocText.trim()) return false;
+
+      const q = config.query || '';
+      if (!q.trim()) {
+        updateField('query', buildQueryFromTemplate('compliance_check', DEFAULT_VENDOR_SUBJECT));
+        setQueryTemplateId('compliance_check');
+        toast.info('探索テーマを自動入力しました', {
+          description: '添付資料があるため、まずは契約/仕様の抵触チェックをデフォルトにしました（後から編集できます）。',
+        });
+        return true;
+      }
+
+      if (/（対象を記入）/.test(q)) {
+        updateField('query', q.replace(/（対象を記入）/g, DEFAULT_VENDOR_SUBJECT));
+        toast.info('探索テーマの未入力部分を補完しました', {
+          description: '「（対象を記入）」を添付資料の監査対象に置き換えました（必要なら編集してください）。',
+        });
+        return true;
+      }
+
+      return false;
+    },
+    [config.query, updateField]
+  );
+
   const importVendorDocFromFile = useCallback(async (file: File) => {
     const lowerName = file.name.toLowerCase();
     const isPdf = lowerName.endsWith('.pdf') || file.type === 'application/pdf';
@@ -255,6 +284,7 @@ export default function Home() {
     if (isText) {
       const text = await file.text();
       updateField('vendorDocText', text);
+      maybeAutofillQueryForVendorDoc(text);
       setVendorDocImport({ kind: 'txt', fileName: file.name });
       setVendorDocCoverageAck(false);
       toast.success('添付資料を読み込みました', {
@@ -318,6 +348,7 @@ export default function Home() {
       const wasCapped = finalText.length > 60_000;
       const cappedText = wasCapped ? `${finalText.slice(0, 60_000)}\n\n...(省略)...` : finalText;
       updateField('vendorDocText', cappedText);
+      maybeAutofillQueryForVendorDoc(cappedText);
       setVendorDocImport({
         kind: 'pdf',
         fileName: file.name,
@@ -377,7 +408,7 @@ export default function Home() {
       setVendorDocLoading(false);
       setVendorDocProgress(null);
     }
-  }, [updateField, vendorDocRelevantOnly]);
+  }, [updateField, vendorDocRelevantOnly, maybeAutofillQueryForVendorDoc]);
 
   const handleVendorDocDragEnter = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -560,6 +591,23 @@ export default function Home() {
 
   // 実行ボタン（Phase 4）
   const handleExecute = useCallback(() => {
+    // If the user attached a contract/spec first (common), avoid blocking them
+    // with "対象を記入" errors. Fill a safe default theme and let them re-run.
+    if (
+      !!config.vendorDocText.trim() &&
+      (!config.query.trim() || /（対象を記入）/.test(config.query))
+    ) {
+      const filled = !config.query.trim()
+        ? buildQueryFromTemplate('compliance_check', DEFAULT_VENDOR_SUBJECT)
+        : config.query.replace(/（対象を記入）/g, DEFAULT_VENDOR_SUBJECT);
+      updateField('query', filled);
+      setQueryTemplateId('compliance_check');
+      toast.info('探索テーマを自動入力しました', {
+        description: 'もう一度「プロンプトを生成」を押してください（必要ならテーマを編集できます）。',
+      });
+      return;
+    }
+
     setHasAttemptedGenerate(true);
 
     if (vendorDocLoading) {
@@ -1329,7 +1377,9 @@ export default function Home() {
                     id="vendorDoc"
                     value={config.vendorDocText}
                     onChange={(e) => {
-                      updateField('vendorDocText', e.target.value);
+                      const next = e.target.value;
+                      updateField('vendorDocText', next);
+                      maybeAutofillQueryForVendorDoc(next);
                       // If user edits manually, treat it as a conscious excerpt (coverage ack not needed).
                       setVendorDocImport(null);
                       setVendorDocCoverageAck(false);
