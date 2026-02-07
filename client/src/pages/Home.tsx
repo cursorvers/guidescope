@@ -45,7 +45,7 @@ import {
 import { cn } from '@/lib/utils';
 
 import { TAB_PRESETS, DIFFICULTY_PRESETS, type AppConfig, type DifficultyLevel } from '@/lib/presets';
-import { generatePrompt, generateSearchQueries, configToJSON, parseConfigJSON, encodeConfigToURL } from '@/lib/template';
+import { generatePrompt, generateSearchQueries, configToJSON, encodeConfigToURL, isShareLinkTooLong } from '@/lib/template';
 import { extractAuditRelevantSnippets, extractTextFromPdfFile } from '@/lib/pdf';
 import { useConfig } from '@/hooks/useConfig';
 import { useMinimalMode } from '@/contexts/MinimalModeContext';
@@ -273,6 +273,8 @@ export default function Home() {
     setVendorDocLoading(true);
     setVendorDocProgress({ page: 0, totalPagesToRead: 0 });
     setVendorDocNotice(null);
+    // Replace semantics: when importing a new file, do not keep old excerpts around.
+    updateField('vendorDocText', '');
     try {
       const extracted = await extractTextFromPdfFile(file, {
         maxPages: 40,
@@ -285,6 +287,7 @@ export default function Home() {
         toast.warning('PDFから十分なテキストを抽出できませんでした', {
           description: `画像PDFの可能性があります。Plan B: ${planB.join(' / ')}`,
         });
+        updateField('vendorDocText', '');
         setVendorDocImport({
           kind: 'pdf',
           fileName: file.name,
@@ -307,7 +310,9 @@ export default function Home() {
       const snippet = vendorDocRelevantOnly
         ? extractAuditRelevantSnippets(baseText)
         : { text: baseText, hitCount: undefined as number | undefined, truncated: false };
-      const finalText = snippet.text;
+
+      const snippetEmpty = vendorDocRelevantOnly && !snippet.text.trim();
+      const finalText = snippetEmpty ? baseText : snippet.text;
 
       // Keep it reasonably small to avoid localStorage quota issues.
       const wasCapped = finalText.length > 60_000;
@@ -321,25 +326,41 @@ export default function Home() {
         partialByPages: extracted.totalPages > extracted.readPages,
         truncated: extracted.truncated,
         relevantOnly: vendorDocRelevantOnly,
-        snippetHitCount: snippet.hitCount,
+        snippetHitCount: snippetEmpty ? 0 : snippet.hitCount,
         snippetTruncated: snippet.truncated,
         capped: wasCapped,
       });
       setVendorDocCoverageAck(false);
 
-      toast.success('PDFからテキストを抽出しました', {
-        description: `${Math.min(extracted.readPages, extracted.totalPages)}ページ分を解析しました${vendorDocRelevantOnly ? '（関連条項のみ抽出）' : ''}`,
-      });
-      setVendorDocNotice({
-        type: 'info',
-        title: 'PDFからテキストを抽出しました',
-        message: `${Math.min(extracted.readPages, extracted.totalPages)}ページ分を解析しました${vendorDocRelevantOnly ? '（関連条項のみ抽出）' : ''}。`,
-        planB: [],
-      });
+      if (snippetEmpty) {
+        toast.warning('関連条項が見つかりませんでした', {
+          description: '全文を貼り付けました。必要なら「関連条項だけ抽出」をOFFにするか、重要条項をテキストで追記してください。',
+        });
+        setVendorDocNotice({
+          type: 'warning',
+          title: '関連条項が見つかりませんでした',
+          message: '監査観点キーワード（保存/学習/再委託/監査権など）に該当する箇所が検出できませんでした。全文を貼り付けています。',
+          planB: [
+            '「関連条項だけ抽出」をOFFにして再読み込み（全文から確認）',
+            '監査したい条項（保存/学習利用/再委託/監査権/越境移転/削除/ログ/事故対応）だけをテキストで貼り付け',
+          ],
+        });
+      } else {
+        toast.success('PDFからテキストを抽出しました', {
+          description: `${Math.min(extracted.readPages, extracted.totalPages)}ページ分を解析しました${vendorDocRelevantOnly ? '（関連条項のみ抽出）' : ''}`,
+        });
+        setVendorDocNotice({
+          type: 'info',
+          title: 'PDFからテキストを抽出しました',
+          message: `${Math.min(extracted.readPages, extracted.totalPages)}ページ分を解析しました${vendorDocRelevantOnly ? '（関連条項のみ抽出）' : ''}。`,
+          planB: [],
+        });
+      }
     } catch (err) {
       toast.error('PDFの読み込みに失敗しました', {
         description: `Plan B: ${planB.join(' / ')}`,
       });
+      updateField('vendorDocText', '');
       setVendorDocImport({
         kind: 'pdf',
         fileName: file.name,
@@ -665,10 +686,18 @@ export default function Home() {
 
   // 共有リンク
   const handleShare = useCallback(async () => {
+    if (isShareLinkTooLong(config)) {
+      toast.error('共有リンクが長すぎます', {
+        description: 'Plan B: JSONタブで設定JSONをコピー/ダウンロードして共有してください（添付資料は共有リンクに含めません）。',
+      });
+      return;
+    }
     const url = encodeConfigToURL(config);
     try {
       await navigator.clipboard.writeText(url);
-      toast.success('共有リンクをコピーしました');
+      toast.success('共有リンクをコピーしました', {
+        description: '注意: 添付資料（契約書/仕様書の抜粋）は共有リンクに含めません。',
+      });
     } catch {
       toast.error('コピーに失敗しました');
     }

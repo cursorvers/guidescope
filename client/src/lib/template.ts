@@ -777,7 +777,13 @@ export function parseConfigJSON(json: string): AppConfig | null {
 
 export function encodeConfigToURL(config: AppConfig): string {
   try {
-    const json = JSON.stringify(config);
+    // Security/UX: Do not include vendor contract/spec excerpts in share links.
+    // - URLs can leak via history/logs and easily exceed length limits.
+    const shareSafeConfig: AppConfig = {
+      ...config,
+      vendorDocText: '',
+    };
+    const json = JSON.stringify(shareSafeConfig);
     const encoded = btoa(encodeURIComponent(json));
     const baseUrl = window.location.origin + window.location.pathname;
     return `${baseUrl}?c=${encoded}`;

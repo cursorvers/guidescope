@@ -48,7 +48,7 @@ export const AppConfigSchema = z.object({
   difficultyLevel: DifficultyLevelSchema.default('standard'),
 
   // Optional inputs (user-provided documents)
-  vendorDocText: z.string(),
+  vendorDocText: z.string().default(''),
   // Prevent "AI contract" vs "non-AI EHR contract" confusion.
   // Default keeps older saved configs/share links valid.
   aiInScope: z.enum(['unknown', 'yes', 'no']).default('unknown'),
