@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import {
@@ -63,6 +64,32 @@ import { useReturnBanner } from '@/hooks/useReturnBanner';
 
 const MOBILE_MEDIA_QUERY = '(max-width: 1023px)';
 const TEXT_INPUT_TYPES = new Set(['text', 'search', 'email', 'number', 'tel', 'url', 'password']);
+
+type QueryTemplateId = 'free' | 'compliance_check' | 'responsibility_split';
+
+function extractSubjectFromQuery(raw: string) {
+  const q = raw.trim();
+  if (!q) return '';
+
+  const m1 = q.match(/^(.+?)について、ガイドラインや関連法規・法令に抵触する部分がないか精査せよ。?$/s);
+  if (m1?.[1]) return m1[1].trim();
+
+  const m2 = q.match(/^(.+?)について、医療機関とベンダーの責任分界点はどこに設定されているか明らかにせよ。?$/s);
+  if (m2?.[1]) return m2[1].trim();
+
+  return q;
+}
+
+function buildQueryFromTemplate(templateId: QueryTemplateId, subject: string) {
+  const s = subject.trim() || '（対象を記入）';
+  if (templateId === 'compliance_check') {
+    return `${s}について、ガイドラインや関連法規・法令に抵触する部分がないか精査せよ。`;
+  }
+  if (templateId === 'responsibility_split') {
+    return `${s}について、医療機関とベンダーの責任分界点はどこに設定されているか明らかにせよ。`;
+  }
+  return subject;
+}
 
 /**
  * Full Version オーバーレイコンポーネント
@@ -163,6 +190,7 @@ export default function Home() {
   const vendorDocDragCounterRef = useRef(0);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [showIntroModal, setShowIntroModal] = useState(false);
+  const [queryTemplateId, setQueryTemplateId] = useState<QueryTemplateId>('free');
   const [hasExecutedBefore, setHasExecutedBefore] = useState(() => {
     return localStorage.getItem('medai_has_executed') === 'true';
   });
@@ -559,6 +587,14 @@ export default function Home() {
     }
   };
 
+  const applyQueryTemplate = useCallback((templateId: QueryTemplateId) => {
+    setQueryTemplateId(templateId);
+    if (templateId === 'free') return;
+
+    const subject = extractSubjectFromQuery(config.query);
+    updateField('query', buildQueryFromTemplate(templateId, subject));
+  }, [config.query, updateField]);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -580,7 +616,7 @@ export default function Home() {
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold tracking-tight text-foreground">GuideScope</h1>
-                  <p className="text-xs text-muted-foreground leading-tight">生成AI 国内ガイドライン検索</p>
+                  <p className="text-xs text-muted-foreground leading-tight">医療AI/医療情報 国内ガイドライン検索</p>
                 </div>
               </a>
             </Link>
@@ -1008,7 +1044,7 @@ export default function Home() {
                       </TooltipTrigger>
                       <TooltipContent side="right" className="max-w-xs">
                         <p className="text-xs">
-                          プロンプト生成の中心となる質問やテーマです。具体的な状況や目的を入力すると、より的確な検索結果が得られます。
+                          プロンプト生成の中心となる質問やテーマです。医療AIに限らず、電子カルテなど医療情報システムの契約監査にも使えます（契約書/仕様書の抜粋を添付すると精度が上がります）。
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -1016,6 +1052,27 @@ export default function Home() {
                       必須
                     </span>
                   </div>
+
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[11px] text-muted-foreground shrink-0">テンプレ</span>
+                    <Select
+                      value={queryTemplateId}
+                      onValueChange={(v) => applyQueryTemplate(v as QueryTemplateId)}
+                    >
+                      <SelectTrigger className="w-full justify-between" size="sm" aria-label="探索テーマテンプレート">
+                        <SelectValue placeholder="テンプレートを選択" />
+                      </SelectTrigger>
+                      <SelectContent align="start">
+                        <SelectItem value="compliance_check">1. 抵触チェック（ガイドライン/法令）</SelectItem>
+                        <SelectItem value="responsibility_split">2. 責任分界の明確化（契約/SLA）</SelectItem>
+                        <SelectItem value="free">3. その他（自由入力）</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span className="hidden sm:inline text-[11px] text-muted-foreground">
+                      選択後も自由に編集できます
+                    </span>
+                  </div>
+
                   <Textarea
                     id="query"
                     value={config.query}

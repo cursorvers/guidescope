@@ -340,7 +340,7 @@ describe('settings.ts', () => {
   // ============================================================================
   describe('Default Constants', () => {
     it('should have correct DEFAULT_ROLE_TITLE', () => {
-      expect(DEFAULT_ROLE_TITLE).toBe('国内ガイドライン・ダイレクト・リトリーバー(医療AI特化)');
+      expect(DEFAULT_ROLE_TITLE).toBe('国内ガイドライン・ダイレクト・リトリーバー(医療情報・医療AI特化)');
     });
 
     it('should have DEFAULT_ROLE_DESCRIPTION with required content', () => {
