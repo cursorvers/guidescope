@@ -140,11 +140,8 @@ export default function Home() {
     resetConfig,
     switchTab,
     updateField,
-    toggleCategory,
-    toggleKeywordChip,
     toggleScope,
     toggleAudience,
-    setCustomKeywords,
     importConfig,
   } = useConfig();
 
@@ -164,15 +161,7 @@ export default function Home() {
   }>(null);
   const [isVendorDocDragActive, setIsVendorDocDragActive] = useState(false);
   const vendorDocDragCounterRef = useRef(0);
-  const [sectionsOpen, setSectionsOpen] = useState({
-    scope: true,
-    audience: true,
-    options: false,
-    categories: false,
-    keywords: false,
-    domains: false,
-    api: false,
-  });
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const [showIntroModal, setShowIntroModal] = useState(false);
   const [hasExecutedBefore, setHasExecutedBefore] = useState(() => {
     return localStorage.getItem('medai_has_executed') === 'true';
@@ -419,26 +408,6 @@ export default function Home() {
 
   // 検索クエリ生成
   const searchQueries = useMemo(() => generateSearchQueries(config), [config]);
-
-  // Phase 6: 設定完了度の計算
-  const completionPercentage = useMemo(() => {
-    let completed = 0;
-    let total = 2; // 必須項目: テーマ、プリセット
-
-    if (config.query.trim()) completed++;
-    if (config.activeTab) completed++;
-
-    // Coming Soon が無効化されている場合のオプション項目
-    if (!isMinimalMode) {
-      total += 4; // 対象者、範囲、カテゴリ、検索語
-      if (config.audiences.length > 0) completed++;
-      if (config.scope.length > 0) completed++;
-      if (config.categories.filter(c => c.enabled).length > 0) completed++;
-      if (config.keywordChips.filter(k => k.enabled).length > 0) completed++;
-    }
-
-    return Math.round((completed / total) * 100);
-  }, [config.query, config.activeTab, config.audiences, config.scope, config.categories, config.keywordChips, isMinimalMode]);
 
   // プリセット選択（トラッキング付き）
   const handlePresetSelect = (presetId: string) => {
@@ -733,26 +702,23 @@ export default function Home() {
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
           {/* 右カラム(Desktop): 設定サイドバー */}
           <div className="space-y-2 order-2 lg:order-none lg:col-start-2 lg:row-start-1 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-7.5rem)] lg:overflow-auto lg:pr-1">
-            {/* Phase 6: 設定完了度インジケーター */}
-            <div className="simple-card p-2 bg-primary/5 border-primary/20">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-medium">設定完了度</span>
-                <span className="text-xs font-bold text-primary">{completionPercentage}%</span>
+            {/* Status (keep it quiet, no progress meter) */}
+            <div className="simple-card p-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium">ステータス</span>
+                <span className="text-[10px] text-muted-foreground">
+                  {isStandardDifficulty ? 'スタンダード' : 'プロフェッショナル'}
+                </span>
               </div>
-              <Progress value={completionPercentage} className="h-1.5 mb-1" />
-              <div className="flex flex-wrap gap-1.5 text-[10px]">
-                {config.query && (
-                  <span className="flex items-center gap-0.5 text-green-600">
-                    <Check className="w-2.5 h-2.5" />
-                    テーマ入力済み
-                  </span>
-                )}
-                {config.activeTab && (
-                  <span className="flex items-center gap-0.5 text-green-600">
-                    <Check className="w-2.5 h-2.5" />
-                    プリセット選択済み
-                  </span>
-                )}
+              <div className="mt-1 flex flex-wrap gap-2 text-[11px]">
+                <span className={cn('flex items-center gap-1', config.query.trim() ? 'text-green-700' : 'text-muted-foreground')}>
+                  <Check className={cn('w-3 h-3', config.query.trim() ? 'opacity-100' : 'opacity-30')} />
+                  テーマ
+                </span>
+                <span className={cn('flex items-center gap-1', config.activeTab ? 'text-green-700' : 'text-muted-foreground')}>
+                  <Check className={cn('w-3 h-3', config.activeTab ? 'opacity-100' : 'opacity-30')} />
+                  プリセット
+                </span>
               </div>
             </div>
 
@@ -896,280 +862,130 @@ export default function Home() {
               )}
             </div>
 
-            {/* 3. 対象者 */}
-            <Collapsible
-              open={sectionsOpen.audience}
-              onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, audience: open })}
-            >
+            {/* Advanced Settings (collapsed by default) */}
+            <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
               <div className="simple-card">
                 <CollapsibleTrigger className="collapsible-header">
-                  <span className="text-sm font-medium">対象者</span>
-                  {sectionsOpen.audience ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                  <span className="text-sm font-medium">詳細設定</span>
+                  {advancedOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                 </CollapsibleTrigger>
                 <CollapsibleContent className="collapsible-content">
-                  <div className="flex flex-wrap gap-1.5">
-                    {['医療機関', '提供事業者', '開発企業', '研究者', '審査対応'].map(audience => (
-                      <button
-                        key={audience}
-                        onClick={() => toggleAudience(audience)}
-                        className={`chip ${config.audiences.includes(audience) ? 'active' : ''}`}
-                      >
-                        {audience}
-                      </button>
-                    ))}
-                  </div>
-                </CollapsibleContent>
-              </div>
-            </Collapsible>
-
-            {/* 4. 対象範囲 */}
-            <Collapsible
-              open={sectionsOpen.scope}
-              onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, scope: open })}
-            >
-              <div className="simple-card">
-                <CollapsibleTrigger className="collapsible-header">
-                  <span className="text-sm font-medium">対象範囲</span>
-                  {sectionsOpen.scope ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                </CollapsibleTrigger>
-                <CollapsibleContent className="collapsible-content">
-                  <div className="flex flex-wrap gap-1.5">
-                    {['医療AI', '生成AI', 'SaMD', '医療情報セキュリティ', '医療データ利活用', '研究倫理'].map(scope => (
-                      <button
-                        key={scope}
-                        onClick={() => toggleScope(scope)}
-                        className={`chip ${config.scope.includes(scope) ? 'active' : ''}`}
-                      >
-                        {scope}
-                      </button>
-                    ))}
-                  </div>
-                </CollapsibleContent>
-              </div>
-            </Collapsible>
-
-            {/* 5. カテゴリ */}
-            <Collapsible
-              open={sectionsOpen.categories}
-              onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, categories: open })}
-            >
-              <div className="simple-card">
-                <CollapsibleTrigger className="collapsible-header">
-                  <span className="text-sm font-medium">カテゴリ例</span>
-                  {sectionsOpen.categories ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                </CollapsibleTrigger>
-                <CollapsibleContent className="collapsible-content">
-                  <div className="flex flex-wrap gap-1.5">
-                    {currentPreset.categories.map(cat => (
-                      <button
-                        key={cat}
-                        onClick={() => toggleCategory(cat)}
-                        className={`chip ${config.categories.find(c => c.name === cat)?.enabled ? 'active' : ''}`}
-                      >
-                        {cat}
-                      </button>
-                    ))}
-                  </div>
-                </CollapsibleContent>
-              </div>
-            </Collapsible>
-
-            {/* 6. 追加検索語 - グレーアウト対象 */}
-            <ComingSoonOverlay featureName="追加検索語">
-              <Collapsible
-                open={sectionsOpen.keywords}
-                onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, keywords: open })}
-              >
-                <div className="simple-card">
-                  <CollapsibleTrigger className="collapsible-header">
-                    <span className="text-sm font-medium">追加検索語</span>
-                    {sectionsOpen.keywords ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="collapsible-content">
-                    <div className="flex flex-wrap gap-1.5 mb-2">
-                      {currentPreset.keywordChips.map((kw: string) => (
-                        <button
-                          key={kw}
-                          onClick={() => toggleKeywordChip(kw)}
-                          className={`chip text-xs ${config.keywordChips.find(k => k.name === kw)?.enabled ? 'active' : ''}`}
-                        >
-                          {kw}
-                        </button>
-                      ))}
-                    </div>
-                    <Input
-                      value={config.customKeywords}
-                      onChange={(e) => setCustomKeywords(e.target.value)}
-                      placeholder="カスタム検索語（カンマ区切り）"
-                      className="text-sm"
-                    />
-                  </CollapsibleContent>
-                </div>
-              </Collapsible>
-            </ComingSoonOverlay>
-
-            {/* 7. 優先ドメイン */}
-            <Collapsible
-              open={sectionsOpen.domains}
-              onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, domains: open })}
-            >
-              <div className="simple-card">
-                <CollapsibleTrigger className="collapsible-header">
-                  <span className="text-sm font-medium">優先ドメイン</span>
-                  {sectionsOpen.domains ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                </CollapsibleTrigger>
-                <CollapsibleContent className="collapsible-content">
-                  <div className="flex flex-wrap gap-1.5">
-                    {config.priorityDomains.map(domain => (
-                      <span key={domain} className="chip active text-xs">
-                        {domain}
-                      </span>
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    ※ 設定画面で編集できます
-                  </p>
-                </CollapsibleContent>
-              </div>
-            </Collapsible>
-
-            {/* 8. オプション - グレーアウト対象 */}
-            <ComingSoonOverlay featureName="オプション">
-              <Collapsible
-                open={sectionsOpen.options}
-                onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, options: open })}
-              >
-                <div className="simple-card">
-                  <CollapsibleTrigger className="collapsible-header">
-                    <span className="text-sm font-medium">オプション</span>
-                    {sectionsOpen.options ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="collapsible-content">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="official" className="text-sm">公式ドメイン優先</Label>
-                        <Switch
-                          id="official"
-                          checked={config.officialDomainPriority}
-                          disabled={config.difficultyLevel === 'standard'}
-                          onCheckedChange={(checked) => updateField('officialDomainPriority', checked)}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="egov" className="text-sm">e-Gov法令参照</Label>
-                        <Switch
-                          id="egov"
-                          checked={config.eGovCrossReference}
-                          disabled={config.difficultyLevel === 'standard'}
-                          onCheckedChange={(checked) => updateField('eGovCrossReference', checked)}
-                        />
-                      </div>
-                      <p className="text-[11px] text-muted-foreground">
-                        目安: 法令の条文まで当たりたい時だけON（通常はOFFで十分）。
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="proof" className="text-sm">実証モード</Label>
-                        <Switch
-                          id="proof"
-                          checked={config.proofMode}
-                          disabled={config.difficultyLevel === 'standard'}
-                          onCheckedChange={(checked) => updateField('proofMode', checked)}
-                        />
-                      </div>
-                      <p className="text-[11px] text-muted-foreground">
-                        ONにすると、最後に「実証結果（達成事項/制約事項）」を必ず出させて、再現性と未確認点を明確にします。
-                      </p>
-                    </div>
-                  </CollapsibleContent>
-                </div>
-              </Collapsible>
-            </ComingSoonOverlay>
-
-            {/* 9. API / プログラムから使う - グレーアウト対象 */}
-            <ComingSoonOverlay featureName="API / プログラムから使う">
-              <Collapsible
-                open={sectionsOpen.api}
-                onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, api: open })}
-              >
-                <div className="simple-card">
-                <CollapsibleTrigger className="collapsible-header">
-                  <div className="flex items-center gap-2">
-                    <Code className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium">API / プログラムから使う</span>
-                  </div>
-                  {sectionsOpen.api ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                </CollapsibleTrigger>
-                <CollapsibleContent className="collapsible-content">
-                  <div className="space-y-4 text-xs">
-                    {/* GitHub からインストール */}
+                  <div className="space-y-4">
                     <div>
-                      <h4 className="font-semibold text-sm flex items-center gap-1 mb-2">
-                        <Terminal className="w-3 h-3" />
-                        npm パッケージ（GitHub）
-                      </h4>
-                      <div className="bg-muted/50 p-3 rounded-lg font-mono space-y-2">
-                        <p className="text-muted-foreground"># インストール</p>
-                        <code className="block text-xs break-all">npm install github:cursorvers/guidescope#main</code>
-                      </div>
-                      <div className="bg-muted/50 p-3 rounded-lg font-mono mt-2">
-                        <p className="text-muted-foreground mb-1"># 使用例</p>
-                        <pre className="text-xs whitespace-pre-wrap">{`// ESM
-import { generate } from 'guidescope/packages/core';
-
-// CommonJS
-const { generate } = require('guidescope/packages/core');
-
-const result = generate({
-  query: '医療AIの臨床導入',
-  preset: 'medical-device',
-  difficulty: 'professional',
-});
-
-console.log(result.prompt);`}</pre>
-                      </div>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">対象者</p>
+                      {isStandardDifficulty ? (
+                        <div className="flex flex-wrap gap-1.5">
+                          <span className="chip active text-xs">医療機関</span>
+                          <span className="text-[11px] text-muted-foreground ml-1">（スタンダードは固定）</span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-wrap gap-1.5">
+                          {['医療機関', '提供事業者', '開発企業', '研究者', '審査対応'].map(audience => (
+                            <button
+                              key={audience}
+                              onClick={() => toggleAudience(audience)}
+                              className={`chip ${config.audiences.includes(audience) ? 'active' : ''}`}
+                            >
+                              {audience}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
-                    {/* MCP サーバー */}
                     <div>
-                      <h4 className="font-semibold text-sm flex items-center gap-1 mb-2">
-                        <Sparkles className="w-3 h-3" />
-                        MCP サーバー（Claude Desktop / Cursor）
-                      </h4>
-                      <p className="text-muted-foreground mb-2">
-                        設定ファイルに追加:
+                      <p className="text-xs font-medium text-muted-foreground mb-1">対象範囲</p>
+                      {isStandardDifficulty ? (
+                        <div className="flex flex-wrap gap-1.5">
+                          {config.scope.map((s) => (
+                            <span key={s} className="chip active text-xs">
+                              {s}
+                            </span>
+                          ))}
+                          <span className="text-[11px] text-muted-foreground ml-1">（推奨）</span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-wrap gap-1.5">
+                          {['医療AI', '生成AI', 'SaMD', '医療情報セキュリティ', '医療データ利活用', '研究倫理'].map(scope => (
+                            <button
+                              key={scope}
+                              onClick={() => toggleScope(scope)}
+                              className={`chip ${config.scope.includes(scope) ? 'active' : ''}`}
+                            >
+                              {scope}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="rounded-lg border border-border/60 bg-muted/20 p-2 text-xs text-muted-foreground">
+                      <p>
+                        カテゴリ: {config.categories.filter(c => c.enabled).length}/{config.categories.length}
                       </p>
-                      <div className="bg-muted/50 p-3 rounded-lg font-mono">
-                        <pre className="text-xs whitespace-pre-wrap">{`{
-  "mcpServers": {
-    "guidescope": {
-      "command": "npx",
-      "args": ["@cursorversinc/guidescope-mcp"]
-    }
-  }
-}`}</pre>
-                      </div>
-                      <p className="text-muted-foreground mt-2">
-                        利用可能なツール: <code className="bg-muted px-1 rounded">generate</code>, <code className="bg-muted px-1 rounded">generatePrompt</code>, <code className="bg-muted px-1 rounded">generateSearchQueries</code>, <code className="bg-muted px-1 rounded">listPresets</code>
+                      <p>
+                        追加検索語: {config.keywordChips.filter(k => k.enabled).length}/{config.keywordChips.length}
+                      </p>
+                      <p>
+                        優先ドメイン: {config.priorityDomains.length}件
+                      </p>
+                      <p className="mt-1">
+                        細かい編集は設定画面で行えます。
                       </p>
                     </div>
 
-                    {/* GitHub リンク */}
-                    <div className="pt-2 border-t border-border">
-                      <a
-                        href="https://github.com/cursorvers/guidescope"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-primary hover:underline"
+                    <ComingSoonOverlay featureName="オプション">
+                      <div className="rounded-lg border border-border/60 p-2">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="official" className="text-sm">公式ドメイン優先</Label>
+                            <Switch
+                              id="official"
+                              checked={config.officialDomainPriority}
+                              disabled={config.difficultyLevel === 'standard'}
+                              onCheckedChange={(checked) => updateField('officialDomainPriority', checked)}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="egov" className="text-sm">e-Gov法令参照</Label>
+                            <Switch
+                              id="egov"
+                              checked={config.eGovCrossReference}
+                              disabled={config.difficultyLevel === 'standard'}
+                              onCheckedChange={(checked) => updateField('eGovCrossReference', checked)}
+                            />
+                          </div>
+                          <p className="text-[11px] text-muted-foreground">
+                            目安: 法令の条文まで当たりたい時だけON（通常はOFFで十分）。
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="proof" className="text-sm">実証モード</Label>
+                            <Switch
+                              id="proof"
+                              checked={config.proofMode}
+                              disabled={config.difficultyLevel === 'standard'}
+                              onCheckedChange={(checked) => updateField('proofMode', checked)}
+                            />
+                          </div>
+                          <p className="text-[11px] text-muted-foreground">
+                            ONにすると、最後に「実証結果（達成事項/制約事項）」を必ず出させて、未確認点を明確にします。
+                          </p>
+                        </div>
+                      </div>
+                    </ComingSoonOverlay>
+
+                    <Link href="/settings" onClick={handleSettingsClick}>
+                      <button
+                        type="button"
+                        className="w-full text-xs text-primary hover:underline text-left"
                       >
-                        <ExternalLink className="w-3 h-3" />
-                        GitHub で詳細を見る
-                      </a>
-                    </div>
+                        設定画面で詳細を編集する
+                      </button>
+                    </Link>
                   </div>
                 </CollapsibleContent>
               </div>
             </Collapsible>
-          </ComingSoonOverlay>
 
           </div>
 
