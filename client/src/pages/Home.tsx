@@ -745,7 +745,7 @@ export default function Home() {
                 <path d="M45 30 L45 70 L55 60 L65 65 L45 30" fill="currentColor" className="text-primary"/>
                 <circle cx="38" cy="32" r="4" fill="currentColor" className="text-primary"/>
               </svg>
-              <span className="text-xs text-muted-foreground font-medium">Cursorvers Inc.</span>
+              <span className="text-sm text-muted-foreground font-medium">Cursorvers Inc.</span>
             </a>
           </div>
 
