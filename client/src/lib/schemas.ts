@@ -49,6 +49,9 @@ export const AppConfigSchema = z.object({
 
   // Optional inputs (user-provided documents)
   vendorDocText: z.string(),
+  // Prevent "AI contract" vs "non-AI EHR contract" confusion.
+  // Default keeps older saved configs/share links valid.
+  aiInScope: z.enum(['unknown', 'yes', 'no']).default('unknown'),
 
   // Switches
   threeMinistryGuidelines: z.boolean(),

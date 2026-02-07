@@ -98,6 +98,12 @@ export interface AppConfig {
   // Optional inputs (user-provided documents)
   // Used for contract/spec audits. Keep as plain text to avoid PDF parsing in-browser.
   vendorDocText: string;
+  /**
+   * Prevents a common failure mode:
+   * - Non-AI EHR contracts being treated as "medical AI" contracts (or vice versa).
+   * The prompt will use this to force a clear branch early in the output.
+   */
+  aiInScope: 'unknown' | 'yes' | 'no';
 
   // Switches
   threeMinistryGuidelines: boolean;
@@ -296,6 +302,7 @@ export function normalizeConfig(config: AppConfig): AppConfig {
       dateToday: config.dateToday || base.dateToday,
       query: config.query || '',
       vendorDocText: config.vendorDocText || '',
+      aiInScope: (config.aiInScope as AppConfig['aiInScope']) || 'unknown',
       priorityDomains: safePriorityDomains,
       customKeywords: Array.isArray(config.customKeywords) ? config.customKeywords : [],
       excludeKeywords: Array.isArray(config.excludeKeywords) ? config.excludeKeywords : [],
@@ -317,6 +324,7 @@ export function normalizeConfig(config: AppConfig): AppConfig {
     priorityDomains: safePriorityDomains,
     audiences: Array.isArray(config.audiences) && config.audiences.length > 0 ? config.audiences : [...STANDARD_AUDIENCES],
     scope: Array.isArray(config.scope) && config.scope.length > 0 ? config.scope : [...STANDARD_SCOPE],
+    aiInScope: (config.aiInScope as AppConfig['aiInScope']) || 'unknown',
     categories: categoriesOk
       ? config.categories
       : preset.categories.map(name => ({ name, enabled: true })),
@@ -344,6 +352,7 @@ export function createDefaultConfig(tabId: string = 'clinical-operation'): AppCo
     audiences: ['医療機関'],
     difficultyLevel: 'standard',
     vendorDocText: '',
+    aiInScope: 'unknown',
 
     threeMinistryGuidelines: true,
     officialDomainPriority: true,

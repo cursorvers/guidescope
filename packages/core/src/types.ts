@@ -60,6 +60,8 @@ export interface AppConfig {
   // Optional inputs (user-provided documents)
   // Used for contract/spec audits. Plain text only.
   vendorDocText: string;
+  // Prevent a common failure mode: mixing up AI and non-AI contract analysis.
+  aiInScope: 'unknown' | 'yes' | 'no';
 
   // Switches
   threeMinistryGuidelines: boolean;

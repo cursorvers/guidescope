@@ -347,6 +347,12 @@ export default function Home() {
 
   const hasPrivacyWarning = privacyWarnings.length > 0;
 
+  const hasVendorDocAIKeywords = useMemo(() => {
+    const text = config.vendorDocText || '';
+    if (!text.trim()) return false;
+    return /(LLM|生成AI|機械学習|\\bAI\\b|AI\\s*モデル|大規模言語モデル)/i.test(text);
+  }, [config.vendorDocText]);
+
   // 初回実行フラグをlocalStorageに保存
   useEffect(() => {
     if (hasExecutedBefore) {
@@ -599,8 +605,8 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border">
-        <div className="container flex items-center justify-between h-20">
-          <div className="flex items-center gap-5">
+        <div className="container flex items-center h-20 gap-3">
+          <div className="flex items-center gap-5 shrink-0">
             {/* Product Name - Primary */}
             <Link href="/">
               <a
@@ -636,15 +642,23 @@ export default function Home() {
               <span className="text-xs text-muted-foreground font-medium">Cursorvers Inc.</span>
             </a>
           </div>
-          <div className="flex items-center gap-2">
+
+          {/* Value Proposition (Desktop) */}
+          <div className="hidden lg:flex flex-1 min-w-0 items-center justify-center px-3">
+            <p className="text-sm text-muted-foreground text-center truncate">
+              一次資料ベースで「抵触チェック」と「責任分界」を最短で整理
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
             <Button
-              variant="ghost"
-              size="sm"
+              variant="secondary"
+              size="default"
               onClick={() => setShowUsageGuide(!showUsageGuide)}
-              className="text-xs"
+              className="h-10 px-3 text-sm font-semibold"
             >
               <HelpCircle className="w-4 h-4 mr-1" />
-              <span className="hidden sm:inline">使い方</span>
+              <span>使い方・できること</span>
             </Button>
             <span className="text-xs text-muted-foreground hidden sm:inline">
               {config.dateToday}
@@ -719,13 +733,27 @@ export default function Home() {
             >
               <X className="w-4 h-4" />
             </button>
-            <h3 className="font-semibold text-sm mb-2 text-primary">使い方</h3>
-            <ol className="text-sm space-y-1.5 text-muted-foreground">
-              <li><span className="font-medium text-foreground">1.</span> 探索テーマを入力（例：医療AIの臨床導入における安全管理）</li>
-              <li><span className="font-medium text-foreground">2.</span> 目的プリセットを選択（スタンダードは臨床運用寄りに固定）</li>
-              <li><span className="font-medium text-foreground">3.</span> 「コピー」ボタンでプロンプトをコピー</li>
-              <li><span className="font-medium text-foreground">4.</span> お好みのLLM（Gemini、ChatGPT、Claude等）に貼り付けて実行</li>
-            </ol>
+            <h3 className="font-semibold text-sm mb-2 text-primary">使い方・できること</h3>
+
+            <div className="text-sm text-muted-foreground space-y-3">
+              <div>
+                <p className="font-medium text-foreground">何に使える？</p>
+                <ul className="mt-1 space-y-1.5">
+                  <li><span className="font-medium text-foreground">・抵触チェック:</span> ガイドライン/通知/法令に抵触しうる論点を一次資料で洗い出す</li>
+                  <li><span className="font-medium text-foreground">・責任分界:</span> 医療機関とベンダーの役割分担を契約/SLA/仕様書の条項から明確化</li>
+                  <li><span className="font-medium text-foreground">・契約監査:</span> 保存/学習利用/再委託/監査権/越境移転/削除/ログ/事故対応の記載を確認</li>
+                </ul>
+              </div>
+
+              <div className="pt-3 border-t border-primary/20">
+                <p className="font-medium text-foreground">使い方（最短）</p>
+                <ol className="mt-1 space-y-1.5">
+                  <li><span className="font-medium text-foreground">1.</span> 探索テーマを入力（上のテンプレ選択も便利）</li>
+                  <li><span className="font-medium text-foreground">2.</span> 必要なら「添付資料」に契約書/仕様書の該当条項を貼る（PDF/.txtの読み込みも可）</li>
+                  <li><span className="font-medium text-foreground">3.</span> 「コピー」して、お好みのLLM（Gemini/ChatGPT/Claude等）で実行</li>
+                </ol>
+              </div>
+            </div>
             <div className="mt-3 pt-3 border-t border-primary/20">
               <p className="text-xs text-muted-foreground">
                 <span className="font-medium">対応LLM:</span> Google Gemini、ChatGPT、Claude、Perplexity、Microsoft Copilot など、Web検索機能を持つLLMで使用できます。
@@ -1073,6 +1101,35 @@ export default function Home() {
                     </span>
                   </div>
 
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[11px] text-muted-foreground shrink-0">AI/LLM要素</span>
+                    <Select
+                      value={config.aiInScope || 'unknown'}
+                      onValueChange={(v) => updateField('aiInScope', v as AppConfig['aiInScope'])}
+                    >
+                      <SelectTrigger className="w-full justify-between" size="sm" aria-label="AI/LLM要素の有無">
+                        <SelectValue placeholder="不明" />
+                      </SelectTrigger>
+                      <SelectContent align="start">
+                        <SelectItem value="unknown">不明（確認したい）</SelectItem>
+                        <SelectItem value="no">なし（AIなしの電子カルテ契約など）</SelectItem>
+                        <SelectItem value="yes">あり（AI/LLMが機能に含まれる）</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button className="text-muted-foreground hover:text-foreground">
+                          <HelpCircle className="w-4 h-4" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="max-w-xs">
+                        <p className="text-xs">
+                          混同防止用です。AI要素がない契約書を「医療AI契約」と誤認して出力しないよう、前提として使います。
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+
                   <Textarea
                     id="query"
                     value={config.query}
@@ -1136,6 +1193,18 @@ export default function Home() {
                     placeholder="例: 第X条（データの取扱い）... / 保存期間... / 学習利用の有無... / 再委託... / 監査権限..."
                     className="min-h-32 lg:min-h-56 text-base leading-relaxed"
                   />
+
+                  {config.aiInScope === 'no' && hasVendorDocAIKeywords && (
+                    <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg text-xs flex items-start gap-2">
+                      <ShieldAlert className="w-4 h-4 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
+                      <div className="text-amber-700 dark:text-amber-400">
+                        <p className="font-medium mb-0.5">前提と資料の不一致の可能性</p>
+                        <p className="text-amber-600 dark:text-amber-500">
+                          「AI/LLM要素=なし」ですが、添付資料にAI関連語が含まれているようです。必要なら「AI/LLM要素」を見直してください。
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="mt-3 flex items-center justify-between gap-2">
                     <button

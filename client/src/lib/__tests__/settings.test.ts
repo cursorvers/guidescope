@@ -305,7 +305,7 @@ describe('settings.ts', () => {
     });
 
     it('should return "text-lg" for large size', () => {
-      expect(getFontSizeClass('large')).toBe('text-lg');
+      expect(getFontSizeClass('large')).toBe('text-xl');
     });
 
     it('should return "text-base" for unknown size (default case)', () => {
@@ -319,7 +319,7 @@ describe('settings.ts', () => {
   // ============================================================================
   describe('getFontSizeScale()', () => {
     it('should return 0.875 for small size', () => {
-      expect(getFontSizeScale('small')).toBe(0.875);
+      expect(getFontSizeScale('small')).toBe(0.95);
     });
 
     it('should return 1 for medium size', () => {
@@ -327,7 +327,7 @@ describe('settings.ts', () => {
     });
 
     it('should return 1.125 for large size', () => {
-      expect(getFontSizeScale('large')).toBe(1.125);
+      expect(getFontSizeScale('large')).toBe(1.25);
     });
 
     it('should return 1 for unknown size (default case)', () => {

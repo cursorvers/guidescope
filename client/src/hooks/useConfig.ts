@@ -147,6 +147,7 @@ export function useConfig() {
           dateToday: prev.dateToday,
           query: prev.query,
           vendorDocText: prev.vendorDocText,
+          aiInScope: prev.aiInScope,
           customKeywords: prev.customKeywords,
           excludeKeywords: prev.excludeKeywords,
         };

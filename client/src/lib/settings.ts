@@ -177,6 +177,7 @@ export function createDefaultExtendedSettings(): ExtendedSettings {
 // ============================================================================
 
 const EXTENDED_SETTINGS_KEY = 'medai_extended_settings_v1';
+export const EXTENDED_SETTINGS_UPDATED_EVENT = 'guidescope_extended_settings_updated';
 
 export function loadExtendedSettings(): ExtendedSettings {
   try {
@@ -213,6 +214,9 @@ export function saveExtendedSettings(settings: ExtendedSettings): void {
   try {
     settings.lastUpdated = new Date().toISOString();
     localStorage.setItem(EXTENDED_SETTINGS_KEY, JSON.stringify(settings));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event(EXTENDED_SETTINGS_UPDATED_EVENT));
+    }
   } catch (e) {
     console.error('Failed to save extended settings:', e);
   }
@@ -233,7 +237,7 @@ export function getFontSizeClass(size: UISettings['fontSize']): string {
     case 'small':
       return 'text-sm';
     case 'large':
-      return 'text-lg';
+      return 'text-xl';
     default:
       return 'text-base';
   }
@@ -242,9 +246,9 @@ export function getFontSizeClass(size: UISettings['fontSize']): string {
 export function getFontSizeScale(size: UISettings['fontSize']): number {
   switch (size) {
     case 'small':
-      return 0.875;
+      return 0.95;
     case 'large':
-      return 1.125;
+      return 1.25;
     default:
       return 1;
   }

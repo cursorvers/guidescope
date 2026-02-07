@@ -94,7 +94,7 @@ export function SettingsUI({
                 'font-bold',
                 value === 'small' && 'text-sm',
                 value === 'medium' && 'text-base',
-                value === 'large' && 'text-lg',
+                value === 'large' && 'text-2xl',
                 extendedSettings.ui.fontSize === value ? 'text-primary' : 'text-muted-foreground'
               )}>
                 {sample}

@@ -312,6 +312,7 @@ ${lawCrossRefPhase}
     outputFormatSection += `
 ■ サマリー
 結論: （1行で。違反/非違反/判断不能(要確認)のいずれかを明示）
+前提: AI_in_scope に従い、AI/LLMが対象に含まれるかを最初に明示する（no の場合、医療AI固有の論点を勝手に適用しない）
 ・[[QUERY]]について、まず結論を明記し、次に重要ポイントを3〜5点で整理する
 ・判断不能(要確認)の場合は、足りない前提条件（例: 外部送信の有無、保存の有無、学習への利用、ログ保持、委託先、患者説明）を3〜6点で列挙する
 ・VendorDoc が (なし) でない場合、契約/仕様の監査観点（保存/学習利用/再委託/監査権/越境移転/削除/ログ/事故対応）について「記載あり/なし/不明」を短く示し、未記載は確認事項として列挙する
@@ -327,6 +328,7 @@ ${lawSourcesLine}
     outputFormatSection += `
 ■ サマリー
 結論: （1行で。違反/非違反/判断不能(要確認)のいずれかを明示）
+前提: AI_in_scope に従い、AI/LLMが対象に含まれるかを最初に明示する（unknown の場合は確認質問を1つ提示し、暫定で分岐を併記）
 ・結論と主要ポイントを3〜5点で簡潔に整理する（最初の1項目は結論）
 ・判断が条件分岐する場合は「分岐条件（例: 外部送信/保存/学習の有無）」を短く併記する
 ・各ポイントに根拠文書名・章節・ページを併記する
@@ -514,6 +516,7 @@ ${output.eGovCrossReference ? '・e-Govは上記の固定フォーマットの�
   const inputSection = `# Input
 Date_today: [[DATE_TODAY]]
 Query: [[QUERY]]
+AI_in_scope: [[AI_IN_SCOPE]]
 SpecificQuestion: [[SPECIFIC_QUESTION]]
 Scope: [[SCOPE]]
 
@@ -613,6 +616,9 @@ export function generatePrompt(config: AppConfig, extSettings?: ExtendedSettings
   
   // Replace query
   prompt = prompt.replace(/\[\[QUERY\]\]/g, config.query || '(未入力)');
+
+  // Replace AI_in_scope (guard against mixing up AI and non-AI contracts)
+  prompt = prompt.replace(/\[\[AI_IN_SCOPE\]\]/g, config.aiInScope || 'unknown');
 
   // Replace specific question (derive from query if not separately specified)
   // The query itself is treated as the specific question to ensure concrete answers
