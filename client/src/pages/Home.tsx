@@ -191,6 +191,12 @@ export default function Home() {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [showIntroModal, setShowIntroModal] = useState(false);
   const [queryTemplateId, setQueryTemplateId] = useState<QueryTemplateId>('free');
+  const [generated, setGenerated] = useState<null | {
+    configSnapshot: AppConfig;
+    prompt: string;
+    searchQueries: string[];
+    generatedAt: string;
+  }>(null);
   const [hasExecutedBefore, setHasExecutedBefore] = useState(() => {
     return localStorage.getItem('medai_has_executed') === 'true';
   });
@@ -435,13 +441,8 @@ export default function Home() {
     return allPresets.find(p => p.id === config.activeTab) || fallback;
   }, [allPresets, config.activeTab]);
 
-  // プロンプト生成
-  const generatedPrompt = useMemo(() => {
-    return generatePrompt(config);
-  }, [config]);
-
-  // 検索クエリ生成
-  const searchQueries = useMemo(() => generateSearchQueries(config), [config]);
+  const hasGenerated = !!generated;
+  const hasUnappliedChanges = hasGenerated && generated?.configSnapshot !== config;
 
   // プリセット選択（トラッキング付き）
   const handlePresetSelect = (presetId: string) => {
@@ -454,27 +455,35 @@ export default function Home() {
 
   // コピー（トラッキング付き）
   const handleCopy = useCallback(async () => {
+    if (!generated) {
+      toast.error('先に「プロンプトを生成」を押してください');
+      return;
+    }
     try {
-      await navigator.clipboard.writeText(generatedPrompt);
-      trackPromptCopy(config.activeTab);
+      await navigator.clipboard.writeText(generated.prompt);
+      trackPromptCopy(generated.configSnapshot.activeTab);
       toast.success('プロンプトをコピーしました');
     } catch {
       toast.error('コピーに失敗しました');
     }
-  }, [generatedPrompt, config.activeTab]);
+  }, [generated]);
 
   // ダウンロード（トラッキング付き）
   const handleDownload = useCallback(() => {
-    const blob = new Blob([generatedPrompt], { type: 'text/plain;charset=utf-8' });
+    if (!generated) {
+      toast.error('先に「プロンプトを生成」を押してください');
+      return;
+    }
+    const blob = new Blob([generated.prompt], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `prompt_${config.dateToday}.txt`;
+    a.download = `prompt_${generated.configSnapshot.dateToday}.txt`;
     a.click();
     URL.revokeObjectURL(url);
-    trackPromptDownload(config.activeTab);
+    trackPromptDownload(generated.configSnapshot.activeTab);
     toast.success('ダウンロードしました');
-  }, [generatedPrompt, config.activeTab, config.dateToday]);
+  }, [generated]);
 
   // 実行ボタン（Phase 4）
   const handleExecute = useCallback(() => {
@@ -493,12 +502,22 @@ export default function Home() {
     }
 
     // 監査ログに記録
+    const prompt = generatePrompt(config);
+    const queries = generateSearchQueries(config);
+
+    setGenerated({
+      configSnapshot: config,
+      prompt,
+      searchQueries: queries,
+      generatedAt: new Date().toISOString(),
+    });
+
     addAuditEntry({
       preset: config.activeTab,
       presetName: currentPreset.name,
       theme: config.query,
       difficulty: config.difficultyLevel,
-      searchQueries,
+      searchQueries: queries,
     });
 
     // アナリティクス記録
@@ -520,7 +539,12 @@ export default function Home() {
       setShowIntroModal(true);
       setHasExecutedBefore(true);
     }
-  }, [config.query, config.activeTab, config.customKeywords, config.difficultyLevel, hasExecutedBefore, hasPrivacyWarning, privacyWarnings, currentPreset, searchQueries, addAuditEntry]);
+  }, [config, hasExecutedBefore, hasPrivacyWarning, privacyWarnings, currentPreset, addAuditEntry]);
+
+  const handleReset = useCallback(() => {
+    setGenerated(null);
+    resetConfig();
+  }, [resetConfig]);
 
   // JSON エクスポート
   const handleExportJSON = () => {
@@ -757,6 +781,9 @@ export default function Home() {
             <div className="mt-3 pt-3 border-t border-primary/20">
               <p className="text-xs text-muted-foreground">
                 <span className="font-medium">対応LLM:</span> Google Gemini、ChatGPT、Claude、Perplexity、Microsoft Copilot など、Web検索機能を持つLLMで使用できます。
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                <span className="font-medium">品質の目安:</span> モデル性能や検索機能の有無で、引用の正確さや見落としが変わります。可能なら高性能モデル（有料プラン）を推奨します。無料版でも利用できますが、一次資料のリンクと引用を必ず確認してください。
               </p>
             </div>
           </div>
@@ -1326,11 +1353,11 @@ export default function Home() {
                   </TabsTrigger>
                 </TabsList>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="sm" onClick={handleCopy} className="h-7 text-xs">
+                  <Button variant="ghost" size="sm" onClick={handleCopy} className="h-7 text-xs" disabled={!hasGenerated}>
                     <Copy className="w-3 h-3 mr-1" />
                     コピー
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={handleDownload} className="h-7 text-xs">
+                  <Button variant="ghost" size="sm" onClick={handleDownload} className="h-7 text-xs" disabled={!hasGenerated}>
                     <Download className="w-3 h-3 mr-1" />
                     DL
                   </Button>
@@ -1344,7 +1371,7 @@ export default function Home() {
                     共有
                     {isMinimalMode && <Lock className="w-2.5 h-2.5 ml-1" />}
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={resetConfig} className="h-7 text-xs text-destructive hover:text-destructive">
+                  <Button variant="ghost" size="sm" onClick={handleReset} className="h-7 text-xs text-destructive hover:text-destructive">
                     <RotateCcw className="w-3 h-3 mr-1" />
                     リセット
                   </Button>
@@ -1358,10 +1385,29 @@ export default function Home() {
                       <span className="text-yellow-600 mr-2">⚠</span>
                       上の探索テーマを入力してください（右側で設定を調整できます）
                     </div>
+                  ) : !generated ? (
+                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-sm p-6 text-center">
+                      <p className="font-medium text-foreground mb-1">まだプロンプトは生成されていません</p>
+                      <p className="max-w-md">
+                        上の入力と右側の設定を整えたら、<span className="font-medium text-foreground">「プロンプトを生成」</span>を押してください。
+                        生成後は、設定を変えても自動更新されません（再生成すると反映されます）。
+                      </p>
+                    </div>
                   ) : (
-                    <pre className="p-4 text-sm whitespace-pre-wrap font-mono leading-relaxed">
-                      {generatedPrompt}
-                    </pre>
+                    <div className="p-4">
+                      {(hasUnappliedChanges) && (
+                        <div className="mb-3 p-3 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 text-xs flex items-start gap-2">
+                          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                          <div>
+                            <p className="font-medium">設定が変更されています</p>
+                            <p className="opacity-90">現在の表示は「最後に生成した内容」です。反映するにはもう一度「プロンプトを生成」を押してください。</p>
+                          </div>
+                        </div>
+                      )}
+                      <pre className="text-sm whitespace-pre-wrap font-mono leading-relaxed">
+                        {generated.prompt}
+                      </pre>
+                    </div>
                   )}
                 </div>
               </TabsContent>
@@ -1394,7 +1440,11 @@ export default function Home() {
                     </CollapsibleContent>
                   </Collapsible>
                   <div className="space-y-2">
-                    {searchQueries.map((query, i) => (
+                    {!generated ? (
+                      <div className="text-sm text-muted-foreground">
+                        先に「プロンプトを生成」を押してください（生成時点のクエリを固定表示します）。
+                      </div>
+                    ) : generated.searchQueries.map((query, i) => (
                       <div key={i} className="flex items-start gap-2 p-2 bg-muted/50 rounded text-sm group">
                         <span className="text-muted-foreground">{i + 1}.</span>
                         <a
