@@ -46,7 +46,6 @@ import { cn } from '@/lib/utils';
 
 import { TAB_PRESETS, DIFFICULTY_PRESETS, type AppConfig, type DifficultyLevel } from '@/lib/presets';
 import { generatePrompt, generateSearchQueries, configToJSON, encodeConfigToURL, isShareLinkTooLong } from '@/lib/template';
-import { extractAuditRelevantSnippets, extractTextFromPdfFile } from '@/lib/pdf';
 import { useConfig } from '@/hooks/useConfig';
 import { useMinimalMode } from '@/contexts/MinimalModeContext';
 import {
@@ -354,6 +353,9 @@ export default function Home() {
     setVendorDocProgress({ page: 0, totalPagesToRead: 0 });
     setVendorDocNotice(null);
     try {
+      // Lazy-load PDF processing (keeps initial bundle lighter).
+      const { extractTextFromPdfFile, extractAuditRelevantSnippets } = await import('@/lib/pdf');
+
       const extracted = await extractTextFromPdfFile(file, {
         maxPages: 40,
         maxChars: 200_000,
