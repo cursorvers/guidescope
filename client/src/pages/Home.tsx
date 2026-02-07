@@ -54,7 +54,6 @@ import {
   trackPromptCopy,
   trackPromptDownload,
   trackComingSoonClick,
-  trackSettingsAttempt,
   trackExecutePrompt,
   trackContactClick,
   trackOutdatedReportClick,
@@ -630,11 +629,6 @@ export default function Home() {
 
   // JSON エクスポート
   const handleExportJSON = () => {
-    if (isMinimalMode) {
-      trackComingSoonClick('JSONエクスポート');
-      toast.info('JSONエクスポートは近日公開予定です');
-      return;
-    }
     const json = configToJSON(config);
     const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -648,11 +642,6 @@ export default function Home() {
 
   // JSON インポート
   const handleImportJSON = () => {
-    if (isMinimalMode) {
-      trackComingSoonClick('JSONインポート');
-      toast.info('JSONインポートは近日公開予定です');
-      return;
-    }
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
@@ -676,11 +665,6 @@ export default function Home() {
 
   // 共有リンク
   const handleShare = useCallback(async () => {
-    if (isMinimalMode) {
-      trackComingSoonClick('共有リンク');
-      toast.info('共有リンクは近日公開予定です');
-      return;
-    }
     const url = encodeConfigToURL(config);
     try {
       await navigator.clipboard.writeText(url);
@@ -688,16 +672,7 @@ export default function Home() {
     } catch {
       toast.error('コピーに失敗しました');
     }
-  }, [config, isMinimalMode]);
-
-  // 設定ページへのリンククリック
-  const handleSettingsClick = (e: React.MouseEvent) => {
-    if (isMinimalMode) {
-      e.preventDefault();
-      trackSettingsAttempt();
-      toast.info('詳細設定は近日公開予定です');
-    }
-  };
+  }, [config]);
 
   const applyQueryTemplate = useCallback((templateId: QueryTemplateId) => {
     setQueryTemplateId(templateId);
@@ -799,14 +774,12 @@ export default function Home() {
               </Tooltip>
             )}
 
-            <Link href="/settings" onClick={handleSettingsClick}>
+            <Link href="/settings">
               <Button
                 variant="ghost"
                 size="icon"
-                className={isMinimalMode ? 'opacity-50' : ''}
               >
                 <Settings className="w-4 h-4" />
-                {isMinimalMode && <Lock className="w-2.5 h-2.5 absolute -bottom-0.5 -right-0.5" />}
               </Button>
             </Link>
           </div>
@@ -881,9 +854,19 @@ export default function Home() {
               <p className="text-xs text-muted-foreground">
                 <span className="font-medium">対応LLM:</span> Google Gemini、ChatGPT、Claude、Perplexity、Microsoft Copilot など、Web検索機能を持つLLMで使用できます。
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                <span className="font-medium">MCPで使う場合:</span> MCP対応の環境（Web取得ツールやファイル読込ツールが使えるエージェント）で、このプロンプトをそのまま実行してください。本ツールは一次資料の取得自体は行わないため、MCP側で公式ページ/PDFへアクセスして引用を付ける運用が前提です。契約書監査は、条項テキストを貼るか、MCPのファイル読込で該当条項を読み込ませてから実行すると精度が上がります。
-              </p>
+              {isMinimalMode ? (
+                <ComingSoonOverlay featureName="MCP連携">
+                  <div className="mt-2 rounded-lg border border-border/60 bg-muted/20 p-2">
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-medium">MCPで使う場合:</span> MCP連携（ファイル読込/自動実行など）は通常版で提供予定です。
+                    </p>
+                  </div>
+                </ComingSoonOverlay>
+              ) : (
+                <p className="text-xs text-muted-foreground mt-1">
+                  <span className="font-medium">MCPで使う場合:</span> MCP対応の環境（Web取得ツールやファイル読込ツールが使えるエージェント）で、このプロンプトをそのまま実行してください。本ツールは一次資料の取得自体は行わないため、MCP側で公式ページ/PDFへアクセスして引用を付ける運用が前提です。契約書監査は、条項テキストを貼るか、MCPのファイル読込で該当条項を読み込ませてから実行すると精度が上がります。
+                </p>
+              )}
               <p className="text-xs text-muted-foreground mt-1">
                 <span className="font-medium">品質の目安:</span> モデル性能や検索機能の有無で、引用の正確さや見落としが変わります。可能なら高性能モデル（有料プラン）を推奨します。無料版でも利用できますが、一次資料のリンクと引用を必ず確認してください。
               </p>
@@ -1127,47 +1110,45 @@ export default function Home() {
                       </p>
                     </div>
 
-                    <ComingSoonOverlay featureName="オプション">
-                      <div className="rounded-lg border border-border/60 p-2">
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <Label htmlFor="official" className="text-sm">公式ドメイン優先</Label>
-                            <Switch
-                              id="official"
-                              checked={config.officialDomainPriority}
-                              disabled={config.difficultyLevel === 'standard'}
-                              onCheckedChange={(checked) => updateField('officialDomainPriority', checked)}
-                            />
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <Label htmlFor="egov" className="text-sm">e-Gov法令参照</Label>
-                            <Switch
-                              id="egov"
-                              checked={config.eGovCrossReference}
-                              disabled={config.difficultyLevel === 'standard'}
-                              onCheckedChange={(checked) => updateField('eGovCrossReference', checked)}
-                            />
-                          </div>
-                          <p className="text-[11px] text-muted-foreground">
-                            目安: 法令の条文まで当たりたい時だけON（通常はOFFで十分）。
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <Label htmlFor="proof" className="text-sm">実証モード</Label>
-                            <Switch
-                              id="proof"
-                              checked={config.proofMode}
-                              disabled={config.difficultyLevel === 'standard'}
-                              onCheckedChange={(checked) => updateField('proofMode', checked)}
-                            />
-                          </div>
-                          <p className="text-[11px] text-muted-foreground">
-                            ONにすると、最後に「実証結果（達成事項/制約事項）」を必ず出させて、未確認点を明確にします。
-                          </p>
+                    <div className="rounded-lg border border-border/60 p-2">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="official" className="text-sm">公式ドメイン優先</Label>
+                          <Switch
+                            id="official"
+                            checked={config.officialDomainPriority}
+                            disabled={config.difficultyLevel === 'standard'}
+                            onCheckedChange={(checked) => updateField('officialDomainPriority', checked)}
+                          />
                         </div>
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="egov" className="text-sm">e-Gov法令参照</Label>
+                          <Switch
+                            id="egov"
+                            checked={config.eGovCrossReference}
+                            disabled={config.difficultyLevel === 'standard'}
+                            onCheckedChange={(checked) => updateField('eGovCrossReference', checked)}
+                          />
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">
+                          目安: 法令の条文まで当たりたい時だけON（通常はOFFで十分）。
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="proof" className="text-sm">実証モード</Label>
+                          <Switch
+                            id="proof"
+                            checked={config.proofMode}
+                            disabled={config.difficultyLevel === 'standard'}
+                            onCheckedChange={(checked) => updateField('proofMode', checked)}
+                          />
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">
+                          ONにすると、最後に「実証結果（達成事項/制約事項）」を必ず出させて、未確認点を明確にします。
+                        </p>
                       </div>
-                    </ComingSoonOverlay>
+                    </div>
 
-                    <Link href="/settings" onClick={handleSettingsClick}>
+                    <Link href="/settings">
                       <button
                         type="button"
                         className="w-full text-xs text-primary hover:underline text-left"
@@ -1505,25 +1486,13 @@ export default function Home() {
 
             <Tabs defaultValue="prompt" className="h-full flex flex-col">
               <div className="flex items-center justify-between border-b border-border px-3 py-2">
-                <TabsList className="h-8">
-                  <TabsTrigger value="prompt" className="text-xs px-3">プロンプト</TabsTrigger>
-                  <TabsTrigger
-                    value="queries"
-                    className="text-xs px-3"
-                    disabled={isMinimalMode}
-                    onClick={() => isMinimalMode && trackComingSoonClick('検索クエリタブ')}
-                  >
+                  <TabsList className="h-8">
+                    <TabsTrigger value="prompt" className="text-xs px-3">プロンプト</TabsTrigger>
+                  <TabsTrigger value="queries" className="text-xs px-3">
                     検索クエリ
-                    {isMinimalMode && <Lock className="w-2.5 h-2.5 ml-1 opacity-50" />}
                   </TabsTrigger>
-                  <TabsTrigger
-                    value="json"
-                    className="text-xs px-3"
-                    disabled={isMinimalMode}
-                    onClick={() => isMinimalMode && trackComingSoonClick('JSONタブ')}
-                  >
+                  <TabsTrigger value="json" className="text-xs px-3">
                     JSON
-                    {isMinimalMode && <Lock className="w-2.5 h-2.5 ml-1 opacity-50" />}
                   </TabsTrigger>
                 </TabsList>
                 <div className="flex gap-1">
@@ -1539,11 +1508,10 @@ export default function Home() {
                     variant="ghost"
                     size="sm"
                     onClick={handleShare}
-                    className={`h-7 text-xs ${isMinimalMode ? 'opacity-50' : ''}`}
+                    className="h-7 text-xs"
                   >
                     <Share2 className="w-3 h-3 mr-1" />
                     共有
-                    {isMinimalMode && <Lock className="w-2.5 h-2.5 ml-1" />}
                   </Button>
                   <Button variant="ghost" size="sm" onClick={handleReset} className="h-7 text-xs text-destructive hover:text-destructive">
                     <RotateCcw className="w-3 h-3 mr-1" />
