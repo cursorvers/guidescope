@@ -242,6 +242,7 @@ export default function Home() {
   const vendorDocDragCounterRef = useRef(0);
   const vendorDocCappedToastRef = useRef(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [mcpGuideOpen, setMcpGuideOpen] = useState(false);
   const [showIntroModal, setShowIntroModal] = useState(false);
   const [queryTemplateId, setQueryTemplateId] = useState<QueryTemplateId>('free');
   const [generated, setGenerated] = useState<null | {
@@ -1313,6 +1314,122 @@ export default function Home() {
                         設定画面で詳細を編集する
                       </button>
                     </Link>
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+
+            {/* MCP / API Guide (collapsed by default) */}
+            <Collapsible open={mcpGuideOpen} onOpenChange={setMcpGuideOpen}>
+              <div className="simple-card">
+                <CollapsibleTrigger className="collapsible-header">
+                  <span className="text-sm font-medium flex items-center gap-1.5">
+                    <Terminal className="w-3.5 h-3.5" />
+                    MCP / API 連携
+                  </span>
+                  {mcpGuideOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                </CollapsibleTrigger>
+                <CollapsibleContent className="collapsible-content">
+                  <div className="space-y-3">
+                    <p className="text-xs text-muted-foreground">
+                      Claude Desktop や Cursor から GuideScope をツールとして利用できます。
+                    </p>
+
+                    {/* Quick start */}
+                    <div>
+                      <p className="text-xs font-medium mb-1">Quick Start</p>
+                      <div className="relative">
+                        <pre className="rounded-md bg-muted/60 border border-border/60 p-2 text-[11px] leading-relaxed overflow-x-auto"><code>npx @cursorversinc/guidescope-mcp</code></pre>
+                        <button
+                          type="button"
+                          className="absolute top-1.5 right-1.5 p-1 rounded hover:bg-muted"
+                          onClick={() => {
+                            navigator.clipboard.writeText('npx @cursorversinc/guidescope-mcp');
+                            toast.success('Copied!');
+                          }}
+                        >
+                          <Copy className="w-3 h-3 text-muted-foreground" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Settings JSON */}
+                    <div>
+                      <p className="text-xs font-medium mb-1">Claude Desktop / Cursor 設定</p>
+                      <div className="relative">
+                        <pre className="rounded-md bg-muted/60 border border-border/60 p-2 text-[11px] leading-relaxed overflow-x-auto"><code>{`{
+  "mcpServers": {
+    "guidescope": {
+      "command": "npx",
+      "args": ["@cursorversinc/guidescope-mcp"]
+    }
+  }
+}`}</code></pre>
+                        <button
+                          type="button"
+                          className="absolute top-1.5 right-1.5 p-1 rounded hover:bg-muted"
+                          onClick={() => {
+                            navigator.clipboard.writeText(JSON.stringify({
+                              mcpServers: {
+                                guidescope: {
+                                  command: 'npx',
+                                  args: ['@cursorversinc/guidescope-mcp'],
+                                },
+                              },
+                            }, null, 2));
+                            toast.success('Copied!');
+                          }}
+                        >
+                          <Copy className="w-3 h-3 text-muted-foreground" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Available tools */}
+                    <div>
+                      <p className="text-xs font-medium mb-1">利用可能ツール</p>
+                      <div className="rounded-md border border-border/60 bg-muted/20 divide-y divide-border/40 text-[11px]">
+                        <div className="px-2 py-1.5 flex items-start gap-2">
+                          <Code className="w-3 h-3 mt-0.5 shrink-0 text-primary" />
+                          <div>
+                            <span className="font-medium">generate</span>
+                            <span className="text-muted-foreground ml-1">- プロンプト + 検索クエリを一括生成</span>
+                          </div>
+                        </div>
+                        <div className="px-2 py-1.5 flex items-start gap-2">
+                          <Code className="w-3 h-3 mt-0.5 shrink-0 text-primary" />
+                          <div>
+                            <span className="font-medium">generatePrompt</span>
+                            <span className="text-muted-foreground ml-1">- プロンプトのみ生成</span>
+                          </div>
+                        </div>
+                        <div className="px-2 py-1.5 flex items-start gap-2">
+                          <Code className="w-3 h-3 mt-0.5 shrink-0 text-primary" />
+                          <div>
+                            <span className="font-medium">generateSearchQueries</span>
+                            <span className="text-muted-foreground ml-1">- 検索クエリのみ生成</span>
+                          </div>
+                        </div>
+                        <div className="px-2 py-1.5 flex items-start gap-2">
+                          <Code className="w-3 h-3 mt-0.5 shrink-0 text-primary" />
+                          <div>
+                            <span className="font-medium">listPresets</span>
+                            <span className="text-muted-foreground ml-1">- プリセット一覧取得</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* npm link */}
+                    <a
+                      href="https://www.npmjs.com/package/@cursorversinc/guidescope-mcp"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                    >
+                      npm で詳細を見る
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
                   </div>
                 </CollapsibleContent>
               </div>
