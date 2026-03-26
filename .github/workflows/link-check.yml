@@ -9,6 +9,10 @@ on:
     - cron: '0 0 * * 1'
   workflow_dispatch: # Manual trigger
 
+permissions:
+  issues: write
+  contents: read
+
 jobs:
   check-links:
     runs-on: ubuntu-latest
@@ -37,7 +41,7 @@ jobs:
             echo "Checking: $url"
 
             # Use curl with timeout and follow redirects
-            HTTP_CODE=$(curl -o /dev/null -s -w "%{http_code}" -L --max-time 30 "$url" || echo "000")
+            HTTP_CODE=$(curl -o /dev/null -s -w "%{http_code}" -L --max-time 30 -H "User-Agent: Mozilla/5.0 (compatible; GuideScope-LinkChecker/1.0)" "$url" || echo "000")
 
             if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 400 ]; then
               echo "  ✓ OK ($HTTP_CODE)"

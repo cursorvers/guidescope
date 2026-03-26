@@ -1,7 +1,7 @@
 {
   "$schema": "./sources.schema.json",
   "version": "1.0.0",
-  "lastUpdated": "2026-02-05",
+  "lastUpdated": "2026-03-26",
   "nextReviewDate": "2026-05-05",
   "maintainer": "Cursorvers Inc.",
   "sources": [
@@ -26,10 +26,10 @@
     {
       "id": "mhlw-ai-guideline",
       "name": "厚労省 医療分野におけるAI利活用ガイドライン",
-      "url": "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000210635.html",
+      "url": "https://www.mhlw.go.jp/stf/shingi/other-kousei_408914_00001.html",
       "domain": "mhlw.go.jp",
       "category": "guideline",
-      "description": "医療AIの開発・利活用に関するガイドライン",
+      "description": "保健医療分野AI開発加速コンソーシアム（医療AIの開発・利活用に関する議論）",
       "tags": ["AI", "ガイドライン", "開発", "利活用"]
     },
     {
@@ -44,7 +44,7 @@
     {
       "id": "meti-ai-governance",
       "name": "経産省 AI事業者ガイドライン",
-      "url": "https://www.meti.go.jp/policy/it_policy/ai_governance/index.html",
+      "url": "https://www.meti.go.jp/shingikai/mono_info_service/ai_shakai_jisso/index.html",
       "domain": "meti.go.jp",
       "category": "guideline",
       "description": "AI事業者向けガバナンスガイドライン",
