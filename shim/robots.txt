@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /
+
+# Canonical site moved to https://cursorvers.jp/tools/guidescope/
