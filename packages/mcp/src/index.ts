@@ -17,6 +17,7 @@ import {
   DIFFICULTY_PRESETS,
   type GeneratePromptOptions,
 } from '@cursorversinc/guidescope';
+import { governanceCrosswalkTool } from './tools/governance-crosswalk.js';
 
 // Create MCP server
 const server = new Server(
@@ -115,6 +116,24 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {},
         },
       },
+      {
+        name: 'query_governance_crosswalk',
+        description: 'Search the medical AI governance crosswalk (10 public guidelines × 13 governance columns) for cells matching a clinical query. Returns guideline citations, requirement strength (must/should/mention), and source URLs.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            persona: {
+              type: 'string',
+              description: 'Optional user persona or clinical role context',
+            },
+            query: {
+              type: 'string',
+              description: 'Clinical query or governance keyword to match against crosswalk cells',
+            },
+          },
+          required: ['query'],
+        },
+      },
     ],
   };
 });
@@ -199,6 +218,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             },
           ],
         };
+      }
+
+      case 'query_governance_crosswalk': {
+        return governanceCrosswalkTool({
+          persona: args?.persona as string | undefined,
+          query: args?.query as string | undefined,
+        });
       }
 
       default:
