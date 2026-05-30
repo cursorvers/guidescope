@@ -2008,7 +2008,7 @@ export default function Home() {
           </p>
           <div className="flex items-center justify-center gap-4 text-xs">
             <a
-              href="https://script.google.com/macros/s/AKfycbwDP0d67qtifyms2h67LawjNWJi_Lh44faPC7Z4axfS_Gdmjzcd50rcl_kmTYBTysKirQ/exec"
+              href="https://script.google.com/macros/s/AKfycbx-983qcPNlVWuAQF7kvQ5llwzvKqfzD_vv21keIQfxYjT7SWbUUre9Uq0_BBjQ3doI/exec"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
@@ -2019,7 +2019,7 @@ export default function Home() {
             </a>
             <span className="text-border">|</span>
             <a
-              href="https://script.google.com/macros/s/AKfycbwDP0d67qtifyms2h67LawjNWJi_Lh44faPC7Z4axfS_Gdmjzcd50rcl_kmTYBTysKirQ/exec?type=outdated"
+              href="https://script.google.com/macros/s/AKfycbx-983qcPNlVWuAQF7kvQ5llwzvKqfzD_vv21keIQfxYjT7SWbUUre9Uq0_BBjQ3doI/exec?type=outdated"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
