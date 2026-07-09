@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "@cursorversinc/guidescope": "^1.0.0",
+    "@cursorversinc/guidescope-medical-corpus": "^0.1.0",
     "@modelcontextprotocol/sdk": "^1.0.0"
   },
   "devDependencies": {
